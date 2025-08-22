@@ -381,3 +381,74 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   @apply from-[hsl(var(--primary-hover))] to-[hsl(var(--secondary-hover))];
 }
+
+/* Custom scrollbar for business form */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Ensure mouse wheel scrolling works */
+.custom-scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Fix for modal scrolling */
+.dialog-content-scrollable {
+  overflow: hidden;
+}
+
+.dialog-content-scrollable .overflow-y-auto {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Enhanced mouse wheel scrolling for modals */
+.dialog-content-scrollable .custom-scrollbar {
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y proximity;
+}
+
+.dialog-content-scrollable .custom-scrollbar:focus {
+  outline: none;
+}
+
+/* Ensure wheel events are captured */
+.dialog-content-scrollable .custom-scrollbar {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Fast, responsive scrolling */
+.dialog-content-scrollable .custom-scrollbar {
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize for performance */
+.dialog-content-scrollable .custom-scrollbar {
+  will-change: scroll-position;
+  transform: translateZ(0);
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,6 +117,7 @@ const SuperAdminDashboard: React.FC = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showBusinessDetails, setShowBusinessDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [businessForm, setBusinessForm] = useState<BusinessFormData>({
     name: '',
     description: '',
@@ -240,6 +241,29 @@ const SuperAdminDashboard: React.FC = () => {
     });
   };
 
+  // Enhanced scroll handling for mouse wheel
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const delta = e.deltaY;
+      
+      // Fast, responsive scrolling with momentum
+      const scrollAmount = delta * 0.3; // Very fast, natural scrolling
+      container.scrollTop += scrollAmount;
+      
+      // Add momentum for better feel
+      if (Math.abs(delta) > 50) {
+        // For larger wheel movements, add extra momentum
+        setTimeout(() => {
+          container.scrollTop += scrollAmount * 0.5;
+        }, 10);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     fetchDashboardData();
     // Set up real-time subscription
@@ -257,6 +281,17 @@ const SuperAdminDashboard: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Ensure scroll container is properly initialized
+  useEffect(() => {
+    if (showAddBusiness && scrollContainerRef.current) {
+      // Reset scroll position when modal opens
+      scrollContainerRef.current.scrollTop = 0;
+      
+      // Add focus to ensure wheel events are captured
+      scrollContainerRef.current.focus();
+    }
+  }, [showAddBusiness]);
 
   const fetchDashboardData = async () => {
     try {
@@ -1053,7 +1088,7 @@ const SuperAdminDashboard: React.FC = () => {
 
         {/* Add Business Dialog */}
         <Dialog open={showAddBusiness} onOpenChange={setShowAddBusiness}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden dialog-content-scrollable" style={{ overscrollBehavior: 'contain' }}>
             <DialogHeader className="pb-4 border-b">
               <DialogTitle>Add New Business</DialogTitle>
               <DialogDescription>
@@ -1061,7 +1096,20 @@ const SuperAdminDashboard: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(95vh - 200px)' }}>
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto pr-2 custom-scrollbar" 
+              style={{ 
+                maxHeight: 'calc(95vh - 200px)', 
+                scrollbarWidth: 'thin', 
+                scrollbarColor: '#cbd5e0 #f7fafc',
+                WebkitOverflowScrolling: 'touch',
+                msOverflowStyle: 'auto',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}
+              onWheel={handleWheel}
+            >
               <form onSubmit={(e) => { e.preventDefault(); createBusiness(businessForm); }} className="space-y-6 py-4">
                 
                 {/* Basic Information Section */}
