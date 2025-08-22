@@ -4,8 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useLenis } from "@/hooks/use-lenis";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./components/dashboard/Dashboard";
+import LoginTest from "./components/auth/LoginTest";
+import AuthDebug from "./components/auth/AuthDebug";
+import QuickTest from "./components/auth/QuickTest";
+import AdminSetup from "./components/auth/AdminSetup";
 
 const queryClient = new QueryClient();
 
@@ -18,17 +24,24 @@ const LenisProvider = ({ children }: { children: React.ReactNode }) => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <LenisProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </LenisProvider>
+      <AuthProvider>
+        <LenisProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/login-test" element={<LoginTest />} />
+              <Route path="/auth-debug" element={<AuthDebug />} />
+              <Route path="/quick-test" element={<QuickTest />} />
+              <Route path="/admin-setup" element={<AdminSetup />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </LenisProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
