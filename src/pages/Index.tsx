@@ -4,6 +4,7 @@ import CategoriesSection from "@/components/CategoriesSection";
 import FeaturedBusinesses from "@/components/FeaturedBusinesses";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
       <FeaturedBusinesses />
       <SubscriptionPlans />
       <Footer />
+      <ScrollToTop />
     </div>
   );
 };

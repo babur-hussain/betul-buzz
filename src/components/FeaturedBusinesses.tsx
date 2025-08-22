@@ -69,7 +69,7 @@ const featuredBusinesses = [
 
 const FeaturedBusinesses = () => {
   return (
-    <section className="py-20 bg-white">
+    <section id="businesses" className="py-20 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -121,11 +121,11 @@ const FeaturedBusinesses = () => {
                 {/* Hover Actions */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <div className="flex space-x-3">
-                    <Button size="sm" variant="secondary" className="bg-white/90 text-black hover:bg-white">
+                    <Button size="sm" variant="secondary" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30">
                       <Eye className="w-4 h-4 mr-1" />
                       View
                     </Button>
-                    <Button size="sm" variant="secondary" className="bg-white/90 text-black hover:bg-white">
+                    <Button size="sm" variant="secondary" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30">
                       <Heart className="w-4 h-4" />
                     </Button>
                   </div>

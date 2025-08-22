@@ -2,9 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, TrendingUp, Star, Users, Building } from "lucide-react";
+import { useSmoothScroll } from "@/hooks/use-lenis";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const { scrollTo } = useSmoothScroll();
+
+  const handleScrollToSection = (sectionId: string) => {
+    scrollTo(`#${sectionId}`, { offset: -80, duration: 1.5 });
+  };
+
   return (
     <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Background Image with Enhanced Overlay */}
@@ -18,7 +25,7 @@ const HeroSection = () => {
 
       {/* Enhanced Floating Elements */}
       <div className="absolute top-20 left-10 float-animation">
-        <div className="card-glass p-6 border border-white/30 shadow-2xl">
+        <div className="card-glass p-6 border border-white/30 shadow-2xl bg-white/10 backdrop-blur-xl">
           <div className="flex items-center space-x-3 text-white">
             <Building className="w-6 h-6 text-accent" />
             <div>
@@ -30,7 +37,7 @@ const HeroSection = () => {
       </div>
 
       <div className="absolute top-32 right-16 float-animation" style={{ animationDelay: "1s" }}>
-        <div className="card-glass p-6 border border-white/30 shadow-2xl">
+        <div className="card-glass p-6 border border-white/30 shadow-2xl bg-white/10 backdrop-blur-xl">
           <div className="flex items-center space-x-3 text-white">
             <Users className="w-6 h-6 text-accent" />
             <div>
@@ -42,7 +49,7 @@ const HeroSection = () => {
       </div>
 
       <div className="absolute bottom-32 left-20 float-animation" style={{ animationDelay: "2s" }}>
-        <div className="card-glass p-6 border border-white/30 shadow-2xl">
+        <div className="card-glass p-6 border border-white/30 shadow-2xl bg-white/10 backdrop-blur-xl">
           <div className="flex items-center space-x-3 text-white">
             <Star className="w-6 h-6 text-yellow-400" />
             <div>
@@ -72,20 +79,20 @@ const HeroSection = () => {
         </p>
 
         {/* Enhanced Hero Search */}
-        <div className="card-glass p-8 mb-10 border border-white/30 shadow-2xl max-w-4xl mx-auto">
+        <div className="card-glass p-8 mb-10 border border-white/30 shadow-2xl max-w-4xl mx-auto bg-white/10 backdrop-blur-xl">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
               <Input 
                 placeholder="What are you looking for?" 
-                className="input-neon pl-12 py-5 text-lg font-medium bg-white"
+                className="input-neon pl-12 py-5 text-lg font-medium bg-white/20 border-white/30 text-white placeholder:text-white/70"
               />
             </div>
             <div className="relative flex-1">
-              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
               <Input 
                 placeholder="Location in Betul" 
-                className="input-neon pl-12 py-5 text-lg font-medium bg-white"
+                className="input-neon pl-12 py-5 text-lg font-medium bg-white/20 border-white/30 text-white placeholder:text-white/70"
                 defaultValue="Betul, Madhya Pradesh"
               />
             </div>
@@ -98,13 +105,25 @@ const HeroSection = () => {
 
         {/* Enhanced Quick Actions */}
         <div className="flex flex-wrap justify-center gap-6">
-          <Button variant="outline" className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105">
+          <Button 
+            variant="outline" 
+            className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/10"
+            onClick={() => handleScrollToSection('plans')}
+          >
             Register Your Business
           </Button>
-          <Button variant="outline" className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105">
+          <Button 
+            variant="outline" 
+            className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/10"
+            onClick={() => handleScrollToSection('categories')}
+          >
             Explore Categories
           </Button>
-          <Button variant="outline" className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105">
+          <Button 
+            variant="outline" 
+            className="card-glass border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/10"
+            onClick={() => handleScrollToSection('plans')}
+          >
             View Plans
           </Button>
         </div>

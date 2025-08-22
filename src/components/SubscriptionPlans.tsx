@@ -85,7 +85,7 @@ const plans = [
 
 const SubscriptionPlans = () => {
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-primary/5">
+    <section id="plans" className="py-20 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -186,19 +186,19 @@ const SubscriptionPlans = () => {
 
         {/* Additional Info */}
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="text-center p-6 bg-white rounded-xl shadow-soft">
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
             <BarChart className="w-8 h-8 text-primary mx-auto mb-3" />
             <h4 className="font-semibold text-foreground mb-2">Performance Tracking</h4>
             <p className="text-sm text-muted-foreground">Monitor your business performance with detailed analytics</p>
           </div>
           
-          <div className="text-center p-6 bg-white rounded-xl shadow-soft">
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
             <Phone className="w-8 h-8 text-primary mx-auto mb-3" />
             <h4 className="font-semibold text-foreground mb-2">24/7 Support</h4>
             <p className="text-sm text-muted-foreground">Get help whenever you need it with our dedicated support team</p>
           </div>
           
-          <div className="text-center p-6 bg-white rounded-xl shadow-soft">
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
             <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
             <h4 className="font-semibold text-foreground mb-2">Instant Activation</h4>
             <p className="text-sm text-muted-foreground">Your business listing goes live immediately after signup</p>
