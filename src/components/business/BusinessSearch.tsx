@@ -146,7 +146,9 @@ const BusinessSearch: React.FC = () => {
 
   // Separate useEffect for location detection - only after user interaction
   useEffect(() => {
+    console.log('📍 useEffect triggered, businesses count:', businesses.length);
     if (businesses.length > 0) {
+      console.log('📍 Setting default location and showing all businesses');
       // Don't auto-get location - wait for user interaction
       // Set default location for now
       const defaultLocation = {
@@ -157,6 +159,7 @@ const BusinessSearch: React.FC = () => {
       setUserLocation(defaultLocation);
       // Show all businesses initially
       setFilteredBusinesses(businesses);
+      console.log('📍 Default location set, businesses displayed:', businesses.length);
     }
   }, [businesses]);
 
@@ -167,6 +170,7 @@ const BusinessSearch: React.FC = () => {
 
   const fetchBusinesses = async () => {
     try {
+      console.log('🏢 fetchBusinesses started');
       setIsLoading(true);
       
       // Fetch all active businesses
@@ -177,10 +181,14 @@ const BusinessSearch: React.FC = () => {
 
       if (error) throw error;
 
+      console.log('🏢 Supabase data:', data);
+      console.log('🏢 Data length:', data?.length);
+
       if (data) {
         // Add mock businesses if none exist (for demo purposes)
         let businessData = data;
         if (data.length === 0) {
+          console.log('🏢 No businesses in DB, using mock data');
           businessData = [
             {
               id: '1',
@@ -360,6 +368,7 @@ const BusinessSearch: React.FC = () => {
           ];
         }
         
+        console.log('🏢 Setting businesses state with:', businessData.length, 'businesses');
         setBusinesses(businessData);
         setFilteredBusinesses(businessData);
       }
@@ -520,17 +529,34 @@ const BusinessSearch: React.FC = () => {
 
   // Smart search that automatically finds businesses near user
   const searchNearbyBusinesses = useCallback((query: string) => {
+    console.log('🔍 searchNearbyBusinesses called with query:', query);
+    console.log('📍 userLocation:', userLocation);
+    console.log('🏢 businesses count:', businesses.length);
+
     if (!userLocation) {
-      // If no location yet, get it first
-      getUserLocation();
+      console.log('❌ No userLocation, setting default');
+      // Set default location if none exists
+      const defaultLocation = {
+        lat: 23.1765,
+        lng: 77.5885,
+        address: 'Betul, MP (Default)'
+      };
+      setUserLocation(defaultLocation);
+      
+      // Wait for state update, then search
+      setTimeout(() => {
+        searchNearbyBusinesses(query);
+      }, 100);
       return;
     }
 
     let filtered = [...businesses];
+    console.log('🔍 Initial businesses:', filtered.length);
 
     // Text search if query provided
     if (query.trim()) {
       const queryWords = query.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+      console.log('🔍 Search query words:', queryWords);
       
       filtered = filtered.filter(business => {
         const businessText = [
@@ -543,8 +569,12 @@ const BusinessSearch: React.FC = () => {
           business.city.toLowerCase()
         ].join(' ');
         
-        return queryWords.every(word => businessText.includes(word));
+        const matches = queryWords.every(word => businessText.includes(word));
+        console.log(`🔍 Business "${business.name}" matches "${query}":`, matches);
+        return matches;
       });
+      
+      console.log('🔍 After text filtering:', filtered.length);
     }
 
     // Add distance to all businesses
@@ -558,10 +588,15 @@ const BusinessSearch: React.FC = () => {
       )
     }));
 
+    console.log('🔍 Businesses with distance:', businessesWithDistance.map(b => ({ name: b.name, distance: b.distance })));
+
     // Filter by distance and sort by proximity
     const nearbyBusinesses = businessesWithDistance
       .filter(business => business.distance <= searchFilters.distance)
       .sort((a, b) => a.distance - b.distance);
+
+    console.log('🔍 Final filtered businesses:', nearbyBusinesses.length);
+    console.log('🔍 Final results:', nearbyBusinesses.map(b => b.name));
 
     setFilteredBusinesses(nearbyBusinesses);
     setSearchStatus('completed');
@@ -686,15 +721,18 @@ const BusinessSearch: React.FC = () => {
                     value={searchFilters.query}
                     onChange={(e) => {
                       const value = e.target.value;
+                      console.log('🔍 Input changed to:', value);
                       setSearchFilters(prev => ({ ...prev, query: value }));
                       
                       // Real-time search as user types
                       if (value.trim()) {
+                        console.log('🔍 Triggering search for:', value);
                         setTimeout(() => {
                           searchNearbyBusinesses(value);
                         }, 300);
                       } else {
                         // Show nearby businesses if search is empty
+                        console.log('🔍 Clearing search, showing all nearby');
                         searchNearbyBusinesses('');
                       }
                     }}
