@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   DropdownMenu, 
@@ -33,7 +33,25 @@ const Header = () => {
   const { user, logout, business } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const navigate = useNavigate();
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.search-container')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleScrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -58,6 +76,127 @@ const Header = () => {
   const openAuthModal = (mode: 'login' | 'register') => {
     setAuthMode(mode);
     setShowAuthModal(true);
+  };
+
+  // Load Google Maps script
+  const loadGoogleMapsScript = useCallback(async () => {
+    return new Promise<void>((resolve, reject) => {
+      if (typeof google !== 'undefined' && google.maps) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+        reject(new Error('Google Maps API key not configured'));
+        return;
+      }
+      
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+      document.head.appendChild(script);
+    });
+  }, []);
+
+  // Search Google Places API
+  const searchGooglePlaces = useCallback(async (query: string) => {
+    try {
+      await loadGoogleMapsScript();
+
+      const map = new google.maps.Map(document.createElement('div'));
+      const service = new google.maps.places.PlacesService(map);
+
+      const searchRequest = {
+        query: `${query} in Betul, MP`,
+        location: new google.maps.LatLng(23.1765, 77.5885), // Betul coordinates
+        radius: 50000 // 50km radius
+      };
+
+      return new Promise<any[]>((resolve, reject) => {
+        service.textSearch(searchRequest, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            const businesses = results.slice(0, 5).map((place, index) => ({
+              id: `google_${place.place_id || index}`,
+              name: place.name || 'Unknown Business',
+              category: place.types?.[0]?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
+              address: place.formatted_address || '',
+              rating: place.rating || 0,
+              location: {
+                lat: place.geometry?.location?.lat() || 23.1765,
+                lng: place.geometry?.location?.lng() || 77.5885
+              }
+            }));
+            resolve(businesses);
+          } else {
+            resolve([]);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error searching Google Places:', error);
+      return [];
+    }
+  }, [loadGoogleMapsScript]);
+
+  // Handle search input change with auto-search
+  const handleSearchInputChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // Clear results if query is empty
+    if (!value.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    
+    // Set new timeout for auto-search (500ms delay)
+    const timeout = setTimeout(() => {
+      handleSearch(value);
+    }, 500);
+    
+    setSearchTimeout(timeout);
+  };
+
+  // Handle search
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchGooglePlaces(query);
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSearchResults([]);
+      setShowSearchResults(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle business click
+  const handleBusinessClick = (business: any) => {
+    // Navigate to Google search page with the business selected
+    navigate('/google-search', { state: { selectedBusiness: business } });
+    setSearchResults([]);
+    setSearchQuery('');
+    setShowSearchResults(false);
   };
 
   const getRoleDisplay = (role: string) => {
@@ -91,16 +230,66 @@ const Header = () => {
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-8">
-              <div className="relative flex-1">
+              <div className="relative flex-1 search-container">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                 <Input 
                   placeholder="Search businesses, services, products..." 
+                  value={searchQuery}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                  onFocus={() => searchQuery.trim() && setShowSearchResults(true)}
                   className="pl-12 pr-24 py-4 text-lg font-medium placeholder:text-gray-500 bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-4 focus:ring-primary/20"
                 />
-                <Button size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-hero py-2 px-6 text-sm">
-                  Search
+                <Button 
+                  size="sm" 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-hero py-2 px-6 text-sm"
+                  onClick={() => handleSearch(searchQuery)}
+                  disabled={isSearching || !searchQuery.trim()}
+                >
+                  {isSearching ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    'Search'
+                  )}
                 </Button>
               </div>
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                  {searchResults.map((business) => (
+                    <div 
+                      key={business.id}
+                      className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                      onClick={() => handleBusinessClick(business)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
+                          <p className="text-xs text-gray-600 truncate">{business.category}</p>
+                          <p className="text-xs text-gray-500 truncate">{business.address}</p>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-3 h-3 text-yellow-500" />
+                          <span className="text-xs text-gray-600">{business.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="p-3 bg-gray-50 border-t border-gray-200">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate('/google-search')}
+                    >
+                      View All Results
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
@@ -215,16 +404,66 @@ const Header = () => {
 
           {/* Mobile Search */}
           <div className="md:hidden mt-4">
-            <div className="relative">
+            <div className="relative search-container">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <Input 
                 placeholder="Search in Betul..." 
+                value={searchQuery}
+                onChange={(e) => handleSearchInputChange(e.target.value)}
+                onFocus={() => searchQuery.trim() && setShowSearchResults(true)}
                 className="pl-12 pr-20 py-4 text-lg font-medium bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-primary focus:ring-4 focus:ring-primary/20"
               />
-              <Button size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-hero py-2 px-4">
-                Go
+              <Button 
+                size="sm" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-hero py-2 px-4"
+                onClick={() => handleSearch(searchQuery)}
+                disabled={isSearching || !searchQuery.trim()}
+              >
+                {isSearching ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  'Go'
+                )}
               </Button>
             </div>
+            
+            {/* Mobile Search Results */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                {searchResults.map((business) => (
+                  <div 
+                    key={business.id}
+                    className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleBusinessClick(business)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
+                        <p className="text-xs text-gray-600 truncate">{business.category}</p>
+                        <p className="text-xs text-gray-500 truncate">{business.address}</p>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-3 h-3 text-yellow-500" />
+                        <span className="text-xs text-gray-600">{business.rating}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="p-3 bg-gray-50 border-t border-gray-200">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/google-search')}
+                  >
+                    View All Results
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile Auth Buttons */}
