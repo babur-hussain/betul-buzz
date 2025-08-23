@@ -572,6 +572,22 @@ const BusinessSearch: React.FC = () => {
       console.log('🔍 After text filtering:', filtered.length);
     }
 
+    // If no local results, try Google Places API
+    if (filtered.length === 0 && query.trim()) {
+      console.log('🔍 No local results, searching Google Places API...');
+      try {
+        const googleResults = await searchGooglePlaces(query, currentLocation);
+        if (googleResults.length > 0) {
+          console.log('🔍 Google Places results:', googleResults.length);
+          setFilteredBusinesses(googleResults);
+          setSearchStatus('completed');
+          return;
+        }
+      } catch (error) {
+        console.error('🔍 Google Places API error:', error);
+      }
+    }
+
     // For now, skip distance filtering to fix search
     console.log('🔍 Final filtered businesses:', filtered.length);
     console.log('🔍 Final results:', filtered.map(b => b.name));
@@ -579,6 +595,102 @@ const BusinessSearch: React.FC = () => {
     setFilteredBusinesses(filtered);
     setSearchStatus('completed');
   }, [businesses, userLocation, searchFilters.distance]);
+
+  // Search Google Places API for real business results
+  const searchGooglePlaces = async (query: string, location: { lat: number; lng: number; address: string }) => {
+    console.log('🔍 Searching Google Places for:', query, 'near:', location);
+    
+    try {
+      // Check if Google Maps API is loaded
+      if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+        console.log('🔍 Google Maps API not loaded, loading script...');
+        await loadGoogleMapsScript();
+      }
+
+      // Create a PlacesService instance
+      const map = new google.maps.Map(document.createElement('div'));
+      const service = new google.maps.places.PlacesService(map);
+
+      // Search for places
+      const searchRequest = {
+        query: `${query} in ${location.address}`,
+        location: new google.maps.LatLng(location.lat, location.lng),
+        radius: searchFilters.distance * 1000 // Convert km to meters
+      };
+
+      return new Promise<Business[]>((resolve, reject) => {
+        service.textSearch(searchRequest, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.log('🔍 Google Places results:', results);
+            
+            const businesses: Business[] = results.map((place, index) => ({
+              id: `google_${place.place_id || index}`,
+              name: place.name || 'Unknown Business',
+              description: place.formatted_address || '',
+              category: place.types?.[0]?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
+              address: place.formatted_address || '',
+              city: place.vicinity || location.address,
+              state: location.address.split(', ')[1] || 'Madhya Pradesh',
+              pincode: '460001',
+              phone: place.formatted_phone_number || '+91-XXXXXXXXXX',
+              email: 'info@business.com',
+              website: place.website || '',
+              services: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+              tags: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+              rating: place.rating || 0,
+              total_reviews: place.user_ratings_total || 0,
+              is_verified: true,
+              is_featured: false,
+              is_premium: false,
+              status: 'active',
+              location: {
+                lat: place.geometry?.location?.lat() || location.lat,
+                lng: place.geometry?.location?.lng() || location.lng
+              },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }));
+
+            resolve(businesses);
+          } else {
+            console.log('🔍 Google Places search failed:', status);
+            resolve([]);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('🔍 Error searching Google Places:', error);
+      return [];
+    }
+  };
+
+  // Load Google Maps script if not already loaded
+  const loadGoogleMapsScript = async () => {
+    return new Promise<void>((resolve, reject) => {
+      if (typeof google !== 'undefined' && google.maps) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        console.log('🔍 Google Maps script loaded successfully');
+        resolve();
+      };
+      
+      script.onerror = () => {
+        console.error('🔍 Failed to load Google Maps script');
+        reject(new Error('Failed to load Google Maps script'));
+      };
+
+      document.head.appendChild(script);
+    });
+  };
 
   // Filter businesses by location and distance
   const filterBusinessesByLocation = (selectedLocation: { lat: number; lng: number; address: string }) => {
