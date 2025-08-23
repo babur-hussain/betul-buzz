@@ -288,6 +288,31 @@ const BusinessSearch: React.FC = () => {
               business_hours: {},
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+            },
+            {
+              id: '6',
+              name: 'Keiken Cafe & Restaurant',
+              description: 'Modern Japanese-inspired cafe with fusion cuisine, specialty coffee, and cozy atmosphere. Perfect for meetings and casual dining.',
+              category: 'Restaurant & Food',
+              address: 'Cafe Street, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-5432109876',
+              email: 'hello@keikencafe.com',
+              website: 'https://keikencafe.com',
+              services: ['Dine-in', 'Takeaway', 'Coffee', 'Fusion Food', 'WiFi'],
+              tags: ['Cafe', 'Restaurant', 'Japanese', 'Fusion', 'Coffee', 'Modern'],
+              rating: 4.9,
+              total_reviews: 89,
+              is_verified: true,
+              is_featured: true,
+              is_premium: true,
+              status: 'active',
+              location: { lat: 23.1770, lng: 77.5870 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             }
           ];
         }
@@ -305,16 +330,27 @@ const BusinessSearch: React.FC = () => {
   const filterBusinesses = useCallback(() => {
     let filtered = [...businesses];
 
-    // Text search
+    // Text search - improved logic
     if (searchFilters.query) {
-      const query = searchFilters.query.toLowerCase();
-      filtered = filtered.filter(business =>
-        business.name.toLowerCase().includes(query) ||
-        business.description.toLowerCase().includes(query) ||
-        business.category.toLowerCase().includes(query) ||
-        business.services.some(service => service.toLowerCase().includes(query)) ||
-        business.tags.some(tag => tag.toLowerCase().includes(query))
-      );
+      const query = searchFilters.query.toLowerCase().trim();
+      
+      // Split query into words for better matching
+      const queryWords = query.split(' ').filter(word => word.length > 0);
+      
+      filtered = filtered.filter(business => {
+        const businessText = [
+          business.name.toLowerCase(),
+          business.description.toLowerCase(),
+          business.category.toLowerCase(),
+          ...business.services.map(s => s.toLowerCase()),
+          ...business.tags.map(t => t.toLowerCase()),
+          business.address.toLowerCase(),
+          business.city.toLowerCase()
+        ].join(' ');
+        
+        // Check if all query words are found in business text
+        return queryWords.every(word => businessText.includes(word));
+      });
     }
 
     // Category filter
@@ -504,25 +540,98 @@ const BusinessSearch: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="max-w-4xl mx-auto space-y-4">
-            {/* Main Search Bar */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <PlacesAutocomplete
-                  onPlaceSelect={handlePlaceSelect}
-                  placeholder="Search for businesses, places, or addresses..."
-                  value={searchFilters.query}
-                  onChange={(value) => setSearchFilters(prev => ({ ...prev, query: value }))}
-                />
+            {/* Beautiful Long Search Bar */}
+            <div className="relative">
+              <div className="flex items-center bg-white rounded-2xl shadow-xl border-2 border-gray-100 hover:border-blue-200 focus-within:border-blue-400 transition-all duration-300 overflow-hidden">
+                {/* Search Icon */}
+                <div className="pl-6 pr-4">
+                  <Search className="w-6 h-6 text-gray-400" />
+                </div>
+                
+                {/* Main Search Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search for businesses, services, or anything you need..."
+                    value={searchFilters.query}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSearchFilters(prev => ({ ...prev, query: value }));
+                      
+                      // Real-time search as user types
+                      if (value.trim()) {
+                        setTimeout(() => {
+                          filterBusinesses();
+                        }, 300);
+                      } else {
+                        // Show all businesses if search is empty
+                        setFilteredBusinesses(businesses);
+                      }
+                    }}
+                    className="w-full py-5 pr-12 text-lg font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
+                  />
+                  {/* Clear Button */}
+                  {searchFilters.query && (
+                    <button
+                      onClick={() => {
+                        setSearchFilters(prev => ({ ...prev, query: '' }));
+                        setFilteredBusinesses(businesses);
+                      }}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                
+                {/* Divider */}
+                <div className="w-px h-8 bg-gray-200 mx-2"></div>
+                
+                {/* Location Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Enter location (Betul, MP)"
+                    value={searchFilters.location}
+                    onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full py-5 pr-12 text-lg font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
+                  />
+                  {/* Small Location Icon on Right */}
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <MapPin className="w-5 h-5 text-blue-500" />
+                  </div>
+                </div>
+                
+                {/* Search Button */}
+                <Button 
+                  onClick={() => {
+                    setSearchStatus('searching');
+                    setTimeout(() => {
+                      filterBusinesses();
+                      setSearchStatus('completed');
+                    }, 500);
+                  }}
+                  disabled={searchStatus === 'searching'}
+                  className="h-full px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-l-none border-l-2 border-gray-100"
+                >
+                  {searchStatus === 'searching' ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-5 h-5 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
               </div>
-              <div className="flex-1">
-                <PlacesAutocomplete
-                  onPlaceSelect={handlePlaceSelect}
-                  placeholder="Enter your location (Betul, MP)"
-                  value={searchFilters.location}
-                  onChange={(value) => setSearchFilters(prev => ({ ...prev, location: value }))}
-                />
-              </div>
-              <div className="flex gap-2">
+              
+              {/* Action Buttons Below Search Bar */}
+              <div className="flex items-center justify-center gap-4 mt-4">
                 <Button 
                   onClick={() => {
                     // Get user's current location
@@ -547,42 +656,35 @@ const BusinessSearch: React.FC = () => {
                     }
                   }}
                   variant="outline"
-                  className="px-4"
+                  size="sm"
+                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   Find Near Me
                 </Button>
+                
                 <Button 
                   onClick={() => setShowFilters(!showFilters)}
                   variant="outline"
-                  className="px-6"
+                  size="sm"
+                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
                 >
                   <Filter className="w-4 h-4 mr-2" />
-                  Filters
+                  Advanced Filters
                 </Button>
+                
                 <Button 
                   onClick={() => {
-                    // Trigger search with current filters
-                    setSearchStatus('searching');
-                    setTimeout(() => {
-                      filterBusinesses();
-                      setSearchStatus('completed');
-                    }, 500);
+                    // Show all businesses
+                    setFilteredBusinesses(businesses);
+                    setSearchStatus('completed');
                   }}
-                  disabled={searchStatus === 'searching'}
-                  className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                  variant="outline"
+                  size="sm"
+                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
                 >
-                  {searchStatus === 'searching' ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Search
-                    </>
-                  )}
+                  <Building className="w-4 h-4 mr-2" />
+                  Show All
                 </Button>
               </div>
             </div>
@@ -757,6 +859,11 @@ const BusinessSearch: React.FC = () => {
         <div className="flex items-center space-x-4">
           <h2 className="text-xl font-semibold">
             {filteredBusinesses.length} businesses found
+            {searchFilters.query && (
+              <span className="text-sm font-normal text-blue-600 ml-2">
+                for "{searchFilters.query}"
+              </span>
+            )}
             {searchFilters.location && (
               <span className="text-sm font-normal text-gray-600 ml-2">
                 near {searchFilters.location}
@@ -962,6 +1069,7 @@ const BusinessSearch: React.FC = () => {
                   <div className="text-sm text-gray-600">
                     <p className="font-medium mb-2">Try these searches:</p>
                     <ul className="space-y-1">
+                      <li>• "keiken cafe" or "cafe"</li>
                       <li>• "restaurant" or "food"</li>
                       <li>• "hospital" or "clinic"</li>
                       <li>• "auto service" or "car repair"</li>
@@ -975,8 +1083,46 @@ const BusinessSearch: React.FC = () => {
                       <li>• Use "Find Near Me" button</li>
                       <li>• Try specific areas like "Housing Board Colony"</li>
                       <li>• Check distance filter (currently: {searchFilters.distance} km)</li>
+                      <li>• Try "Show All" to see all businesses</li>
                     </ul>
                   </div>
+                </div>
+                
+                {/* Quick Search Buttons */}
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchFilters(prev => ({ ...prev, query: 'keiken cafe' }));
+                      filterBusinesses();
+                    }}
+                    className="text-xs px-3 py-1"
+                  >
+                    Search "keiken cafe"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchFilters(prev => ({ ...prev, query: 'restaurant' }));
+                      filterBusinesses();
+                    }}
+                    className="text-xs px-3 py-1"
+                  >
+                    Search "restaurant"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchFilters(prev => ({ ...prev, query: 'cafe' }));
+                      filterBusinesses();
+                    }}
+                    className="text-xs px-3 py-1"
+                  >
+                    Search "cafe"
+                  </Button>
                 </div>
               </div>
               
