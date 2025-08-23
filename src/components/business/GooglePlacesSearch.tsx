@@ -103,6 +103,12 @@ const GooglePlacesSearch: React.FC = () => {
       const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
       console.log('🔑 Script URL:', `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`);
       
+      if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+        console.error('🔑 No valid Google Maps API key found!');
+        reject(new Error('Google Maps API key not configured'));
+        return;
+      }
+      
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
@@ -453,9 +459,22 @@ const GooglePlacesSearch: React.FC = () => {
               <Search className="w-8 h-8 text-blue-500" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Search</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-4">
               Enter a search term above to find real businesses from Google Places
             </p>
+            
+            {/* API Key Status */}
+            {(!process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h4 className="font-medium text-red-800 mb-2">⚠️ Google Maps API Key Required</h4>
+                <p className="text-sm text-red-700 mb-3">
+                  To use live Google Places search, you need to add your Google Maps API key to the .env file.
+                </p>
+                <div className="text-xs text-red-600 font-mono bg-red-100 p-2 rounded">
+                  VITE_GOOGLE_MAPS_API_KEY="YOUR_API_KEY_HERE"
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
