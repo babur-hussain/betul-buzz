@@ -533,7 +533,7 @@ const BusinessSearch: React.FC = () => {
   }, []);
 
   // Smart search that automatically finds businesses near user
-  const searchNearbyBusinesses = useCallback((query: string) => {
+  const searchNearbyBusinesses = useCallback(async (query: string) => {
     console.log('🔍 searchNearbyBusinesses called with query:', query);
     console.log('📍 userLocation:', userLocation);
     console.log('🏢 businesses count:', businesses.length);
