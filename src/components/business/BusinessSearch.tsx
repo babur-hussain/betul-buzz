@@ -693,6 +693,22 @@ const BusinessSearch: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <div className="text-sm font-mono">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>🏢 Total: {businesses.length}</div>
+                <div>🔍 Filtered: {filteredBusinesses.length}</div>
+                <div>📍 Location: {userLocation?.address || 'None'}</div>
+                <div>🔎 Query: "{searchFilters.query}"</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Search Header */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
         <CardHeader className="text-center pb-4">
@@ -1258,6 +1274,7 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log('🔍 Test button clicked: keiken cafe');
                       setSearchFilters(prev => ({ ...prev, query: 'keiken cafe' }));
                       searchNearbyBusinesses('keiken cafe');
                     }}
@@ -1269,6 +1286,7 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log('🔍 Test button clicked: restaurant');
                       setSearchFilters(prev => ({ ...prev, query: 'restaurant' }));
                       searchNearbyBusinesses('restaurant');
                     }}
@@ -1280,6 +1298,7 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log('🔍 Test button clicked: cafe');
                       setSearchFilters(prev => ({ ...prev, query: 'cafe' }));
                       searchNearbyBusinesses('cafe');
                     }}
@@ -1291,12 +1310,27 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log('🔍 Test button clicked: kapoor');
                       setSearchFilters(prev => ({ ...prev, query: 'kapoor' }));
                       searchNearbyBusinesses('kapoor');
                     }}
                     className="text-xs px-3 py-1"
                   >
                     Search "kapoor"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔍 Debug: Current state');
+                      console.log('🔍 businesses:', businesses.length);
+                      console.log('🔍 filteredBusinesses:', filteredBusinesses.length);
+                      console.log('🔍 userLocation:', userLocation);
+                      console.log('🔍 searchFilters:', searchFilters);
+                    }}
+                    className="text-xs px-3 py-1 bg-red-100 text-red-700"
+                  >
+                    Debug State
                   </Button>
                 </div>
               </div>
