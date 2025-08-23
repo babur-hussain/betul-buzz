@@ -191,6 +191,11 @@ const Header = () => {
                         Google Demo
                       </DropdownMenuItem>
                       
+                      <DropdownMenuItem onClick={() => navigate('/google-search')}>
+                        <Search className="w-4 h-4 mr-2" />
+                        Live Google Search
+                      </DropdownMenuItem>
+                      
                       <DropdownMenuSeparator />
                       
                       <DropdownMenuItem onClick={handleLogout} className="text-red-600">

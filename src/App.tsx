@@ -13,6 +13,7 @@ import AuthDebug from "./components/auth/AuthDebug";
 import QuickTest from "./components/auth/QuickTest";
 import AdminSetup from "./components/auth/AdminSetup";
 import GoogleIntegrationsDemo from "./pages/GoogleIntegrationsDemo";
+import GooglePlacesSearch from "./components/business/GooglePlacesSearch";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
                    <Route path="/quick-test" element={<QuickTest />} />
                    <Route path="/admin-setup" element={<AdminSetup />} />
                    <Route path="/google-demo" element={<GoogleIntegrationsDemo />} />
+                   <Route path="/google-search" element={<GooglePlacesSearch />} />
                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                    <Route path="*" element={<NotFound />} />
             </Routes>
