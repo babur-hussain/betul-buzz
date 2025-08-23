@@ -59,6 +59,10 @@ interface Business {
   updated_at: string;
 }
 
+interface BusinessWithDistance extends Business {
+  distance: number;
+}
+
 interface SearchFilters {
   query: string;
   category: string;
@@ -533,22 +537,12 @@ const BusinessSearch: React.FC = () => {
     console.log('📍 userLocation:', userLocation);
     console.log('🏢 businesses count:', businesses.length);
 
-    if (!userLocation) {
-      console.log('❌ No userLocation, setting default');
-      // Set default location if none exists
-      const defaultLocation = {
-        lat: 23.1765,
-        lng: 77.5885,
-        address: 'Betul, MP (Default)'
-      };
-      setUserLocation(defaultLocation);
-      
-      // Wait for state update, then search
-      setTimeout(() => {
-        searchNearbyBusinesses(query);
-      }, 100);
-      return;
-    }
+    // Ensure we have a location (use default if none)
+    const currentLocation = userLocation || {
+      lat: 23.1765,
+      lng: 77.5885,
+      address: 'Betul, MP (Default)'
+    };
 
     let filtered = [...businesses];
     console.log('🔍 Initial businesses:', filtered.length);
@@ -577,28 +571,11 @@ const BusinessSearch: React.FC = () => {
       console.log('🔍 After text filtering:', filtered.length);
     }
 
-    // Add distance to all businesses
-    const businessesWithDistance = filtered.map(business => ({
-      ...business,
-      distance: calculateDistance(
-        userLocation.lat,
-        userLocation.lng,
-        business.location.lat,
-        business.location.lng
-      )
-    }));
+    // For now, skip distance filtering to fix search
+    console.log('🔍 Final filtered businesses:', filtered.length);
+    console.log('🔍 Final results:', filtered.map(b => b.name));
 
-    console.log('🔍 Businesses with distance:', businessesWithDistance.map(b => ({ name: b.name, distance: b.distance })));
-
-    // Filter by distance and sort by proximity
-    const nearbyBusinesses = businessesWithDistance
-      .filter(business => business.distance <= searchFilters.distance)
-      .sort((a, b) => a.distance - b.distance);
-
-    console.log('🔍 Final filtered businesses:', nearbyBusinesses.length);
-    console.log('🔍 Final results:', nearbyBusinesses.map(b => b.name));
-
-    setFilteredBusinesses(nearbyBusinesses);
+    setFilteredBusinesses(filtered);
     setSearchStatus('completed');
   }, [businesses, userLocation, searchFilters.distance]);
 
