@@ -93,6 +93,7 @@ const BusinessSearch: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'map' | 'grid'>('list');
   const [sortBy, setSortBy] = useState<'rating' | 'distance' | 'name' | 'newest'>('rating');
   const [showFilters, setShowFilters] = useState(false);
+  const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'completed'>('idle');
 
   // Business categories
   const businessCategories = [
@@ -150,17 +151,149 @@ const BusinessSearch: React.FC = () => {
     try {
       setIsLoading(true);
       
+      // Fetch all active businesses
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('status', 'active')
-        .eq('is_verified', true);
+        .eq('status', 'active');
 
       if (error) throw error;
 
       if (data) {
-        setBusinesses(data);
-        setFilteredBusinesses(data);
+        // Add mock businesses if none exist (for demo purposes)
+        let businessData = data;
+        if (data.length === 0) {
+          businessData = [
+            {
+              id: '1',
+              name: 'Kapoor & Sons Restaurant',
+              description: 'Authentic local cuisine with modern ambiance. Best biryani in town!',
+              category: 'Restaurant & Food',
+              address: 'Kapoor Complex, Housing Board Colony Rd, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-1234567890',
+              email: 'info@kapoorandsons.com',
+              website: 'https://kapoorandsons.com',
+              services: ['Home Delivery', 'Online Booking', 'Dine-in', 'Catering'],
+              tags: ['Restaurant', 'Cafe', 'Local Food', 'Biryani'],
+              rating: 4.8,
+              total_reviews: 156,
+              is_verified: true,
+              is_featured: true,
+              is_premium: false,
+              status: 'active',
+              location: { lat: 23.1765, lng: 77.5885 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              id: '2',
+              name: 'Betul Healthcare Center',
+              description: 'Comprehensive healthcare services with experienced doctors and modern facilities.',
+              category: 'Healthcare',
+              address: 'Hospital Road, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-9876543210',
+              email: 'care@betulhealth.com',
+              website: 'https://betulhealth.com',
+              services: ['24/7 Service', 'Emergency Service', 'Consultation', 'Lab Tests'],
+              tags: ['Healthcare', 'Hospital', 'Medical', 'Emergency'],
+              rating: 4.6,
+              total_reviews: 89,
+              is_verified: true,
+              is_featured: false,
+              is_premium: true,
+              status: 'active',
+              location: { lat: 23.1780, lng: 77.5900 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              id: '3',
+              name: 'Betul Tech Solutions',
+              description: 'Professional IT services, web development, and digital marketing solutions.',
+              category: 'Technology',
+              address: 'Tech Park, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-8765432109',
+              email: 'hello@betultech.com',
+              website: 'https://betultech.com',
+              services: ['Web Development', 'Digital Marketing', 'IT Support', 'Mobile Apps'],
+              tags: ['Technology', 'IT Services', 'Digital', 'Web Development'],
+              rating: 4.9,
+              total_reviews: 234,
+              is_verified: true,
+              is_featured: true,
+              is_premium: true,
+              status: 'active',
+              location: { lat: 23.1750, lng: 77.5860 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              id: '4',
+              name: 'Betul Auto Service',
+              description: 'Complete automotive service and repair center with certified mechanics.',
+              category: 'Automotive',
+              address: 'Auto Nagar, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-7654321098',
+              email: 'service@betulauto.com',
+              website: 'https://betulauto.com',
+              services: ['Car Service', 'Repair', 'Towing', 'Spare Parts'],
+              tags: ['Automotive', 'Car Service', 'Repair', 'Spare Parts'],
+              rating: 4.5,
+              total_reviews: 67,
+              is_verified: true,
+              is_featured: false,
+              is_premium: false,
+              status: 'active',
+              location: { lat: 23.1790, lng: 77.5850 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              id: '5',
+              name: 'Betul Beauty Salon',
+              description: 'Professional beauty and wellness services for men and women.',
+              category: 'Beauty & Wellness',
+              address: 'Beauty Plaza, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-6543210987',
+              email: 'beauty@betulsalon.com',
+              website: 'https://betulsalon.com',
+              services: ['Hair Styling', 'Facial', 'Manicure', 'Pedicure'],
+              tags: ['Beauty', 'Salon', 'Wellness', 'Hair Care'],
+              rating: 4.7,
+              total_reviews: 123,
+              is_verified: true,
+              is_featured: true,
+              is_premium: false,
+              status: 'active',
+              location: { lat: 23.1740, lng: 77.5890 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          ];
+        }
+        
+        setBusinesses(businessData);
+        setFilteredBusinesses(businessData);
       }
     } catch (error) {
       console.error('Error fetching businesses:', error);
@@ -214,35 +347,78 @@ const BusinessSearch: React.FC = () => {
       );
     }
 
-    // Sort results
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating;
-        case 'distance':
-          // TODO: Implement distance calculation
-          return 0;
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        default:
-          return 0;
-      }
-    });
+            // Sort results
+        filtered.sort((a, b) => {
+          switch (sortBy) {
+            case 'rating':
+              return b.rating - a.rating;
+            case 'distance':
+              // If location is selected, sort by distance
+              if (searchFilters.location && a.distance !== undefined && b.distance !== undefined) {
+                return a.distance - b.distance;
+              }
+              return 0;
+            case 'name':
+              return a.name.localeCompare(b.name);
+            case 'newest':
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            default:
+              return 0;
+          }
+        });
 
     setFilteredBusinesses(filtered);
   }, [businesses, searchFilters, sortBy]);
 
   const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
     if (place.geometry?.location) {
+      const selectedLocation = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        address: place.formatted_address || place.name || ''
+      };
+      
       setSearchFilters(prev => ({
         ...prev,
-        location: place.formatted_address || place.name || ''
+        location: selectedLocation.address
       }));
       
-      // TODO: Filter businesses by distance from selected location
+      // Filter businesses by distance from selected location
+      filterBusinessesByLocation(selectedLocation);
     }
+  };
+
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+  };
+
+  // Filter businesses by location and distance
+  const filterBusinessesByLocation = (selectedLocation: { lat: number; lng: number; address: string }) => {
+    const businessesWithDistance = businesses.map(business => ({
+      ...business,
+      distance: calculateDistance(
+        selectedLocation.lat,
+        selectedLocation.lng,
+        business.location.lat,
+        business.location.lng
+      )
+    }));
+
+    // Sort by distance and filter by max distance
+    const nearbyBusinesses = businessesWithDistance
+      .filter(business => business.distance <= searchFilters.distance)
+      .sort((a, b) => a.distance - b.distance);
+
+    setFilteredBusinesses(nearbyBusinesses);
   };
 
   const handleBusinessClick = (business: Business) => {
@@ -329,7 +505,7 @@ const BusinessSearch: React.FC = () => {
         <CardContent>
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Main Search Bar */}
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <PlacesAutocomplete
                   onPlaceSelect={handlePlaceSelect}
@@ -338,14 +514,77 @@ const BusinessSearch: React.FC = () => {
                   onChange={(value) => setSearchFilters(prev => ({ ...prev, query: value }))}
                 />
               </div>
-              <Button 
-                onClick={() => setShowFilters(!showFilters)}
-                variant="outline"
-                className="px-6"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
+              <div className="flex-1">
+                <PlacesAutocomplete
+                  onPlaceSelect={handlePlaceSelect}
+                  placeholder="Enter your location (Betul, MP)"
+                  value={searchFilters.location}
+                  onChange={(value) => setSearchFilters(prev => ({ ...prev, location: value }))}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    // Get user's current location
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          const userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            address: 'Your Current Location'
+                          };
+                          setSearchFilters(prev => ({ ...prev, location: 'Your Current Location' }));
+                          filterBusinessesByLocation(userLocation);
+                        },
+                        (error) => {
+                          console.error('Error getting location:', error);
+                          alert('Unable to get your location. Please enter it manually.');
+                        }
+                      );
+                    } else {
+                      alert('Geolocation is not supported by this browser.');
+                    }
+                  }}
+                  variant="outline"
+                  className="px-4"
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Find Near Me
+                </Button>
+                <Button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  variant="outline"
+                  className="px-6"
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filters
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // Trigger search with current filters
+                    setSearchStatus('searching');
+                    setTimeout(() => {
+                      filterBusinesses();
+                      setSearchStatus('completed');
+                    }, 500);
+                  }}
+                  disabled={searchStatus === 'searching'}
+                  className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                >
+                  {searchStatus === 'searching' ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Quick Filters */}
@@ -518,7 +757,20 @@ const BusinessSearch: React.FC = () => {
         <div className="flex items-center space-x-4">
           <h2 className="text-xl font-semibold">
             {filteredBusinesses.length} businesses found
+            {searchFilters.location && (
+              <span className="text-sm font-normal text-gray-600 ml-2">
+                near {searchFilters.location}
+              </span>
+            )}
           </h2>
+          
+          {/* Search Summary */}
+          {searchStatus === 'completed' && filteredBusinesses.length > 0 && (
+            <div className="text-sm text-gray-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+              ✅ Search completed successfully
+            </div>
+          )}
+          
           <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -575,17 +827,23 @@ const BusinessSearch: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">{business.name}</h3>
                         <p className="text-sm text-gray-600 mb-2">{business.category}</p>
-                        <div className="flex items-center space-x-4 mb-3">
-                          <div className="flex items-center">
-                            <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                            <span className="font-medium">{business.rating.toFixed(1)}</span>
-                            <span className="text-gray-500 ml-1">({business.total_reviews})</span>
-                          </div>
-                          <div className="flex items-center text-gray-500">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            <span>{business.city}, {business.state}</span>
-                          </div>
-                        </div>
+                                                 <div className="flex items-center space-x-4 mb-3">
+                           <div className="flex items-center">
+                             <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                             <span className="font-medium">{business.rating.toFixed(1)}</span>
+                             <span className="text-gray-500 ml-1">({business.total_reviews})</span>
+                           </div>
+                           <div className="flex items-center text-gray-500">
+                             <MapPin className="w-4 h-4 mr-1" />
+                             <span>{business.city}, {business.state}</span>
+                           </div>
+                           {business.distance !== undefined && searchFilters.location && (
+                             <div className="flex items-center text-blue-600">
+                               <Navigation className="w-4 h-4 mr-1" />
+                               <span className="font-medium">{business.distance.toFixed(1)} km</span>
+                             </div>
+                           )}
+                         </div>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -685,23 +943,60 @@ const BusinessSearch: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* No Results */}
-      {filteredBusinesses.length === 0 && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No businesses found</h3>
-            <p className="text-gray-600 mb-4">
-              Try adjusting your search criteria or filters
-            </p>
-            <Button onClick={resetFilters} variant="outline">
-              Reset Filters
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+              {/* No Results */}
+        {filteredBusinesses.length === 0 && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No businesses found</h3>
+              <p className="text-gray-600 mb-4">
+                Try adjusting your search criteria or filters
+              </p>
+              
+              {/* Search Suggestions */}
+              <div className="mt-6 text-left max-w-2xl mx-auto">
+                <h4 className="font-medium text-gray-800 mb-3">Search Suggestions:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="text-sm text-gray-600">
+                    <p className="font-medium mb-2">Try these searches:</p>
+                    <ul className="space-y-1">
+                      <li>• "restaurant" or "food"</li>
+                      <li>• "hospital" or "clinic"</li>
+                      <li>• "auto service" or "car repair"</li>
+                      <li>• "beauty salon" or "spa"</li>
+                    </ul>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p className="font-medium mb-2">Location tips:</p>
+                    <ul className="space-y-1">
+                      <li>• Enter "Betul, MP" as location</li>
+                      <li>• Use "Find Near Me" button</li>
+                      <li>• Try specific areas like "Housing Board Colony"</li>
+                      <li>• Check distance filter (currently: {searchFilters.distance} km)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 space-x-3">
+                <Button onClick={resetFilters} variant="outline">
+                  Reset Filters
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // Show all businesses
+                    setFilteredBusinesses(businesses);
+                  }}
+                  variant="default"
+                >
+                  Show All Businesses
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 };
