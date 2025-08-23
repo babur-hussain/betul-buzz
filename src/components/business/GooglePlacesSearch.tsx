@@ -13,7 +13,10 @@ import {
   Crown,
   Globe,
   Phone,
-  Mail
+  Mail,
+  Share2,
+  Bookmark,
+  Heart
 } from 'lucide-react';
 
 interface GoogleBusiness {
@@ -75,8 +78,10 @@ const GooglePlacesSearch: React.FC = () => {
   });
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'completed'>('idle');
+  const [savedBusinesses, setSavedBusinesses] = useState<string[]>([]);
+  const [favoriteBusinesses, setFavoriteBusinesses] = useState<string[]>([]);
 
-  // Initialize with default location
+  // Initialize with default location and load saved/favorite businesses
   useEffect(() => {
     const defaultLocation = {
       lat: 23.1765,
@@ -84,6 +89,12 @@ const GooglePlacesSearch: React.FC = () => {
       address: 'Betul, MP (Default)'
     };
     setUserLocation(defaultLocation);
+    
+    // Load saved and favorite businesses from localStorage
+    const saved = JSON.parse(localStorage.getItem('savedBusinesses') || '[]').map((b: any) => b.id);
+    const favorites = JSON.parse(localStorage.getItem('favoriteBusinesses') || '[]').map((b: any) => b.id);
+    setSavedBusinesses(saved);
+    setFavoriteBusinesses(favorites);
   }, []);
 
   // Load Google Maps script
@@ -396,34 +407,135 @@ const GooglePlacesSearch: React.FC = () => {
                           {getBusinessStatusBadges(business)}
                         </div>
                         
-                        <div className="flex flex-wrap gap-2">
-                          {business.services.slice(0, 4).map((service, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {service}
-                            </Badge>
-                          ))}
-                          {business.services.length > 4 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{business.services.length - 4} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end space-y-2">
-                        <div className="flex space-x-2">
-                          {business.phone && (
-                            <Button size="sm" variant="outline">
-                              <Phone className="w-4 h-4" />
-                            </Button>
-                          )}
-                          {business.website && (
-                            <Button size="sm" variant="outline">
-                              <Globe className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                                                 <div className="flex flex-wrap gap-2">
+                           {business.services.slice(0, 4).map((service, index) => (
+                             <Badge key={index} variant="outline" className="text-xs">
+                               {service}
+                             </Badge>
+                           ))}
+                           {business.services.length > 4 && (
+                             <Badge variant="outline" className="text-xs">
+                               +{business.services.length - 4} more
+                             </Badge>
+                           )}
+                         </div>
+                         
+                         {/* Action Buttons */}
+                         <div className="flex items-center space-x-2 mt-4">
+                           {/* Get Directions Button */}
+                           <Button 
+                             size="sm" 
+                             className="bg-blue-600 hover:bg-blue-700 text-white"
+                             onClick={() => {
+                               const url = `https://www.google.com/maps/dir/?api=1&destination=${business.location.lat},${business.location.lng}&destination_place_id=${business.id.replace('google_', '')}`;
+                               window.open(url, '_blank');
+                             }}
+                             title="Get directions on Google Maps"
+                           >
+                             <Navigation className="w-4 h-4 mr-2" />
+                             Get Directions
+                           </Button>
+                           
+                           {/* Share Button */}
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => {
+                               if (navigator.share) {
+                                 navigator.share({
+                                   title: business.name,
+                                   text: `Check out ${business.name} at ${business.address}`,
+                                   url: window.location.href
+                                 });
+                               } else {
+                                 // Fallback: copy to clipboard
+                                 navigator.clipboard.writeText(`${business.name} - ${business.address}`);
+                                 // You could add a toast notification here
+                               }
+                             }}
+                             title="Share business"
+                           >
+                             <Share2 className="w-4 h-4" />
+                           </Button>
+                           
+                           {/* Save/Bookmark Button */}
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => {
+                               // Toggle saved state
+                               const savedBusinesses = JSON.parse(localStorage.getItem('savedBusinesses') || '[]');
+                               const isSaved = savedBusinesses.some((b: any) => b.id === business.id);
+                               
+                               if (isSaved) {
+                                 const updated = savedBusinesses.filter((b: any) => b.id !== business.id);
+                                 localStorage.setItem('savedBusinesses', JSON.stringify(updated));
+                               } else {
+                                 savedBusinesses.push(business);
+                                 localStorage.setItem('savedBusinesses', JSON.stringify(savedBusinesses));
+                               }
+                               
+                               // Force re-render to update button state
+                               setBusinesses([...businesses]);
+                             }}
+                             title="Save business"
+                             className={savedBusinesses.includes(business.id) ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : ''}
+                           >
+                             <Bookmark className="w-4 h-4" />
+                           </Button>
+                           
+                           {/* Heart/Favorite Button */}
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => {
+                               // Toggle favorite state
+                               const favoriteBusinesses = JSON.parse(localStorage.getItem('favoriteBusinesses') || '[]');
+                               const isFavorite = favoriteBusinesses.some((b: any) => b.id === business.id);
+                               
+                               if (isFavorite) {
+                                 const updated = favoriteBusinesses.filter((b: any) => b.id !== business.id);
+                                 localStorage.setItem('favoriteBusinesses', JSON.stringify(updated));
+                               } else {
+                                 favoriteBusinesses.push(business);
+                                 localStorage.setItem('favoriteBusinesses', JSON.stringify(favoriteBusinesses));
+                               }
+                               
+                               // Force re-render to update button state
+                               setBusinesses([...businesses]);
+                             }}
+                             title="Add to favorites"
+                             className={favoriteBusinesses.includes(business.id) ? 'bg-red-100 text-red-800 border-red-300' : ''}
+                           >
+                             <Heart className="w-4 h-4" />
+                           </Button>
+                         </div>
+                       </div>
+                       
+                       <div className="flex flex-col items-end space-y-2">
+                         <div className="flex space-x-2">
+                           {business.phone && (
+                             <Button 
+                               size="sm" 
+                               variant="outline"
+                               onClick={() => window.open(`tel:${business.phone}`)}
+                               title="Call business"
+                             >
+                               <Phone className="w-4 h-4" />
+                             </Button>
+                           )}
+                           {business.website && (
+                             <Button 
+                               size="sm" 
+                               variant="outline"
+                               onClick={() => window.open(business.website, '_blank')}
+                               title="Visit website"
+                             >
+                               <Globe className="w-4 h-4" />
+                             </Button>
+                           )}
+                         </div>
+                       </div>
                     </div>
                   </div>
                 </div>
