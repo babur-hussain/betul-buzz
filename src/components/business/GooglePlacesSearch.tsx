@@ -89,13 +89,21 @@ const GooglePlacesSearch: React.FC = () => {
   // Load Google Maps script
   const loadGoogleMapsScript = useCallback(async () => {
     return new Promise<void>((resolve, reject) => {
+      console.log('🔑 Loading Google Maps script...');
+      console.log('🔑 API Key available:', !!process.env.VITE_GOOGLE_MAPS_API_KEY);
+      console.log('🔑 API Key value:', process.env.VITE_GOOGLE_MAPS_API_KEY?.substring(0, 10) + '...');
+      
       if (typeof google !== 'undefined' && google.maps) {
+        console.log('🔑 Google Maps already loaded');
         resolve();
         return;
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+      console.log('🔑 Script URL:', `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`);
+      
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
       
@@ -186,6 +194,8 @@ const GooglePlacesSearch: React.FC = () => {
     setIsLoading(true);
     setSearchStatus('searching');
     console.log('🔍 Starting Google Places search for:', query);
+    console.log('🔑 API Key available:', !!process.env.VITE_GOOGLE_MAPS_API_KEY);
+    console.log('🔑 API Key value:', process.env.VITE_GOOGLE_MAPS_API_KEY?.substring(0, 10) + '...');
 
     try {
       const results = await searchGooglePlaces(query, userLocation);
