@@ -26,7 +26,8 @@ import {
   TrendingUp,
   Award,
   Shield,
-  Crown
+  Crown,
+  RefreshCw
 } from 'lucide-react';
 import PlacesAutocomplete from '../ui/places-autocomplete';
 import EnhancedGoogleMap from '../ui/enhanced-google-map';
@@ -94,6 +95,7 @@ const BusinessSearch: React.FC = () => {
   const [sortBy, setSortBy] = useState<'rating' | 'distance' | 'name' | 'newest'>('rating');
   const [showFilters, setShowFilters] = useState(false);
   const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'completed'>('idle');
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
 
   // Business categories
   const businessCategories = [
@@ -140,7 +142,9 @@ const BusinessSearch: React.FC = () => {
   // Fetch businesses
   useEffect(() => {
     fetchBusinesses();
-  }, []);
+    // Automatically get user location when component mounts
+    getUserLocation();
+  }, [getUserLocation]);
 
   // Filter businesses when filters change
   useEffect(() => {
@@ -313,6 +317,31 @@ const BusinessSearch: React.FC = () => {
               business_hours: {},
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+            },
+            {
+              id: '7',
+              name: 'Kapoor & Sons Restaurant',
+              description: 'Authentic Indian cuisine with traditional recipes passed down through generations. Famous for their biryani, kebabs, and North Indian dishes.',
+              category: 'Restaurant & Food',
+              address: 'Kapoor Complex, Housing Board Colony Rd, Betul',
+              city: 'Betul',
+              state: 'Madhya Pradesh',
+              pincode: '460001',
+              phone: '+91-1234567890',
+              email: 'info@kapoorandsons.com',
+              website: 'https://kapoorandsons.com',
+              services: ['Dine-in', 'Home Delivery', 'Online Booking', 'Catering', 'Takeaway'],
+              tags: ['Restaurant', 'Indian Food', 'Biryani', 'Kebabs', 'Traditional', 'Family Restaurant'],
+              rating: 4.8,
+              total_reviews: 156,
+              is_verified: true,
+              is_featured: true,
+              is_premium: false,
+              status: 'active',
+              location: { lat: 23.1760, lng: 77.5890 },
+              business_hours: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             }
           ];
         }
@@ -437,6 +466,93 @@ const BusinessSearch: React.FC = () => {
     return R * c; // Distance in kilometers
   };
 
+  // Get user's current location automatically
+  const getUserLocation = useCallback(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            address: 'Your Current Location'
+          };
+          setUserLocation(location);
+          // Automatically search for nearby businesses
+          searchNearbyBusinesses('');
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // Fallback to default location (Betul, MP)
+          const defaultLocation = {
+            lat: 23.1765,
+            lng: 77.5885,
+            address: 'Betul, MP (Default)'
+          };
+          setUserLocation(defaultLocation);
+          searchNearbyBusinesses('');
+        }
+      );
+    } else {
+      // Fallback to default location
+      const defaultLocation = {
+        lat: 23.1765,
+        lng: 77.5885,
+        address: 'Betul, MP (Default)'
+      };
+      setUserLocation(defaultLocation);
+      searchNearbyBusinesses('');
+    }
+  }, []);
+
+  // Smart search that automatically finds businesses near user
+  const searchNearbyBusinesses = useCallback((query: string) => {
+    if (!userLocation) {
+      // If no location yet, get it first
+      getUserLocation();
+      return;
+    }
+
+    let filtered = [...businesses];
+
+    // Text search if query provided
+    if (query.trim()) {
+      const queryWords = query.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+      
+      filtered = filtered.filter(business => {
+        const businessText = [
+          business.name.toLowerCase(),
+          business.description.toLowerCase(),
+          business.category.toLowerCase(),
+          ...business.services.map(s => s.toLowerCase()),
+          ...business.tags.map(t => t.toLowerCase()),
+          business.address.toLowerCase(),
+          business.city.toLowerCase()
+        ].join(' ');
+        
+        return queryWords.every(word => businessText.includes(word));
+      });
+    }
+
+    // Add distance to all businesses
+    const businessesWithDistance = filtered.map(business => ({
+      ...business,
+      distance: calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        business.location.lat,
+        business.location.lng
+      )
+    }));
+
+    // Filter by distance and sort by proximity
+    const nearbyBusinesses = businessesWithDistance
+      .filter(business => business.distance <= searchFilters.distance)
+      .sort((a, b) => a.distance - b.distance);
+
+    setFilteredBusinesses(nearbyBusinesses);
+    setSearchStatus('completed');
+  }, [businesses, userLocation, searchFilters.distance, getUserLocation]);
+
   // Filter businesses by location and distance
   const filterBusinessesByLocation = (selectedLocation: { lat: number; lng: number; address: string }) => {
     const businessesWithDistance = businesses.map(business => ({
@@ -540,7 +656,7 @@ const BusinessSearch: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="max-w-4xl mx-auto space-y-4">
-            {/* Beautiful Long Search Bar */}
+            {/* Single Smart Search Bar - Auto Location Detection */}
             <div className="relative">
               <div className="flex items-center bg-white rounded-2xl shadow-xl border-2 border-gray-100 hover:border-blue-200 focus-within:border-blue-400 transition-all duration-300 overflow-hidden">
                 {/* Search Icon */}
@@ -548,7 +664,7 @@ const BusinessSearch: React.FC = () => {
                   <Search className="w-6 h-6 text-gray-400" />
                 </div>
                 
-                {/* Main Search Input */}
+                {/* Single Search Input */}
                 <div className="flex-1 relative">
                   <input
                     type="text"
@@ -561,11 +677,11 @@ const BusinessSearch: React.FC = () => {
                       // Real-time search as user types
                       if (value.trim()) {
                         setTimeout(() => {
-                          filterBusinesses();
+                          searchNearbyBusinesses(value);
                         }, 300);
                       } else {
-                        // Show all businesses if search is empty
-                        setFilteredBusinesses(businesses);
+                        // Show nearby businesses if search is empty
+                        searchNearbyBusinesses('');
                       }
                     }}
                     className="w-full py-5 pr-12 text-lg font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
@@ -575,7 +691,7 @@ const BusinessSearch: React.FC = () => {
                     <button
                       onClick={() => {
                         setSearchFilters(prev => ({ ...prev, query: '' }));
-                        setFilteredBusinesses(businesses);
+                        searchNearbyBusinesses('');
                       }}
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
@@ -586,21 +702,13 @@ const BusinessSearch: React.FC = () => {
                   )}
                 </div>
                 
-                {/* Divider */}
-                <div className="w-px h-8 bg-gray-200 mx-2"></div>
-                
-                {/* Location Input */}
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Enter location (Betul, MP)"
-                    value={searchFilters.location}
-                    onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full py-5 pr-12 text-lg font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
-                  />
-                  {/* Small Location Icon on Right */}
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <MapPin className="w-5 h-5 text-blue-500" />
+                {/* Location Status */}
+                <div className="px-6 py-2 bg-blue-50 border-l border-blue-200">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">
+                      {userLocation ? '📍 Near You' : '📍 Detecting Location...'}
+                    </span>
                   </div>
                 </div>
                 
@@ -609,7 +717,7 @@ const BusinessSearch: React.FC = () => {
                   onClick={() => {
                     setSearchStatus('searching');
                     setTimeout(() => {
-                      filterBusinesses();
+                      searchNearbyBusinesses(searchFilters.query);
                       setSearchStatus('completed');
                     }, 500);
                   }}
@@ -630,62 +738,53 @@ const BusinessSearch: React.FC = () => {
                 </Button>
               </div>
               
-              {/* Action Buttons Below Search Bar */}
-              <div className="flex items-center justify-center gap-4 mt-4">
-                <Button 
-                  onClick={() => {
-                    // Get user's current location
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            address: 'Your Current Location'
-                          };
-                          setSearchFilters(prev => ({ ...prev, location: 'Your Current Location' }));
-                          filterBusinessesByLocation(userLocation);
-                        },
-                        (error) => {
-                          console.error('Error getting location:', error);
-                          alert('Unable to get your location. Please enter it manually.');
-                        }
-                      );
-                    } else {
-                      alert('Geolocation is not supported by this browser.');
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
-                >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Find Near Me
-                </Button>
+              {/* Location Info & Quick Actions */}
+              <div className="flex items-center justify-between mt-4 px-2">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <span>
+                      {userLocation ? `Within ${searchFilters.distance}km of your location` : 'Getting your location...'}
+                    </span>
+                  </div>
+                  
+                  {userLocation && (
+                    <Button
+                      onClick={() => searchNearbyBusinesses('')}
+                      variant="outline"
+                      size="sm"
+                      className="px-3 py-1 text-xs bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Refresh
+                    </Button>
+                  )}
+                </div>
                 
-                <Button 
-                  onClick={() => setShowFilters(!showFilters)}
-                  variant="outline"
-                  size="sm"
-                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Advanced Filters
-                </Button>
-                
-                <Button 
-                  onClick={() => {
-                    // Show all businesses
-                    setFilteredBusinesses(businesses);
-                    setSearchStatus('completed');
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="px-4 py-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
-                >
-                  <Building className="w-4 h-4 mr-2" />
-                  Show All
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    variant="outline"
+                    size="sm"
+                    className="px-3 py-1 text-xs bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
+                  >
+                    <Filter className="w-4 h-4 mr-1" />
+                    Filters
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => {
+                      setFilteredBusinesses(businesses);
+                      setSearchStatus('completed');
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="px-3 py-1 text-xs bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-blue-300"
+                  >
+                    <Building className="w-4 h-4 mr-1" />
+                    Show All
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -864,9 +963,9 @@ const BusinessSearch: React.FC = () => {
                 for "{searchFilters.query}"
               </span>
             )}
-            {searchFilters.location && (
-              <span className="text-sm font-normal text-gray-600 ml-2">
-                near {searchFilters.location}
+            {userLocation && (
+              <span className="text-sm font-normal text-green-600 ml-2">
+                📍 within {searchFilters.distance}km of you
               </span>
             )}
           </h2>
@@ -934,23 +1033,23 @@ const BusinessSearch: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">{business.name}</h3>
                         <p className="text-sm text-gray-600 mb-2">{business.category}</p>
-                                                 <div className="flex items-center space-x-4 mb-3">
-                           <div className="flex items-center">
-                             <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                             <span className="font-medium">{business.rating.toFixed(1)}</span>
-                             <span className="text-gray-500 ml-1">({business.total_reviews})</span>
-                           </div>
-                           <div className="flex items-center text-gray-500">
-                             <MapPin className="w-4 h-4 mr-1" />
-                             <span>{business.city}, {business.state}</span>
-                           </div>
-                           {business.distance !== undefined && searchFilters.location && (
-                             <div className="flex items-center text-blue-600">
-                               <Navigation className="w-4 h-4 mr-1" />
-                               <span className="font-medium">{business.distance.toFixed(1)} km</span>
-                             </div>
-                           )}
-                         </div>
+                                                                             <div className="flex items-center space-x-4 mb-3">
+                              <div className="flex items-center">
+                                <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                                <span className="font-medium">{business.rating.toFixed(1)}</span>
+                                <span className="text-gray-500 ml-1">({business.total_reviews})</span>
+                              </div>
+                              <div className="flex items-center text-gray-500">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                <span>{business.city}, {business.state}</span>
+                              </div>
+                              {business.distance !== undefined && userLocation && (
+                                <div className="flex items-center text-green-600 font-medium">
+                                  <Navigation className="w-4 h-4 mr-1" />
+                                  <span>{business.distance.toFixed(1)} km away</span>
+                                </div>
+                              )}
+                            </div>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -1095,7 +1194,7 @@ const BusinessSearch: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       setSearchFilters(prev => ({ ...prev, query: 'keiken cafe' }));
-                      filterBusinesses();
+                      searchNearbyBusinesses('keiken cafe');
                     }}
                     className="text-xs px-3 py-1"
                   >
@@ -1106,7 +1205,7 @@ const BusinessSearch: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       setSearchFilters(prev => ({ ...prev, query: 'restaurant' }));
-                      filterBusinesses();
+                      searchNearbyBusinesses('restaurant');
                     }}
                     className="text-xs px-3 py-1"
                   >
@@ -1117,11 +1216,22 @@ const BusinessSearch: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       setSearchFilters(prev => ({ ...prev, query: 'cafe' }));
-                      filterBusinesses();
+                      searchNearbyBusinesses('cafe');
                     }}
                     className="text-xs px-3 py-1"
                   >
                     Search "cafe"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchFilters(prev => ({ ...prev, query: 'kapoor' }));
+                      searchNearbyBusinesses('kapoor');
+                    }}
+                    className="text-xs px-3 py-1"
+                  >
+                    Search "kapoor"
                   </Button>
                 </div>
               </div>
