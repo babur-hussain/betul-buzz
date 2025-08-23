@@ -12,6 +12,7 @@ import LoginTest from "./components/auth/LoginTest";
 import AuthDebug from "./components/auth/AuthDebug";
 import QuickTest from "./components/auth/QuickTest";
 import AdminSetup from "./components/auth/AdminSetup";
+import GoogleIntegrationsDemo from "./pages/GoogleIntegrationsDemo";
 
 const queryClient = new QueryClient();
 
@@ -31,13 +32,14 @@ const App = () => (
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/login-test" element={<LoginTest />} />
-              <Route path="/auth-debug" element={<AuthDebug />} />
-              <Route path="/quick-test" element={<QuickTest />} />
-              <Route path="/admin-setup" element={<AdminSetup />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+                                 <Route path="/dashboard" element={<Dashboard />} />
+                   <Route path="/login-test" element={<LoginTest />} />
+                   <Route path="/auth-debug" element={<AuthDebug />} />
+                   <Route path="/quick-test" element={<QuickTest />} />
+                   <Route path="/admin-setup" element={<AdminSetup />} />
+                   <Route path="/google-demo" element={<GoogleIntegrationsDemo />} />
+                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                   <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </LenisProvider>

@@ -1,8 +1,9 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, TrendingUp, Star, Users, Building } from "lucide-react";
+import { Search, MapPin, TrendingUp, Star, Users, Building, Award, Crown } from "lucide-react";
 import { useSmoothScroll } from "@/hooks/use-lenis";
+import PlacesAutocomplete from "./ui/places-autocomplete";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
@@ -78,28 +79,48 @@ const HeroSection = () => {
           Find what you need, when you need it, right in your neighborhood.
         </p>
 
-        {/* Enhanced Hero Search */}
+        {/* Enhanced Hero Search with Google Places */}
         <div className="card-glass p-8 mb-10 border border-white/30 shadow-2xl max-w-4xl mx-auto bg-white/10 backdrop-blur-xl">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
-              <Input 
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 z-10" />
+              <input 
                 placeholder="What are you looking for?" 
-                className="input-neon pl-12 py-5 text-lg font-medium bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                className="input-neon w-full pl-12 py-5 text-lg font-medium bg-white/20 border-white/30 text-white placeholder:text-white/70 rounded-lg focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-300"
+                style={{ backdropFilter: 'blur(10px)' }}
               />
             </div>
             <div className="relative flex-1">
-              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
-              <Input 
-                placeholder="Location in Betul" 
-                className="input-neon pl-12 py-5 text-lg font-medium bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                defaultValue="Betul, Madhya Pradesh"
+              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 z-10" />
+              <PlacesAutocomplete
+                onPlaceSelect={(place) => {
+                  console.log('Selected place:', place);
+                  // Handle place selection
+                }}
+                placeholder="Location in Betul"
+                className="[&_input]:bg-white/20 [&_input]:border-white/30 [&_input]:text-white [&_input]:placeholder:text-white/70 [&_input]:py-5 [&_input]:text-lg [&_input]:font-medium [&_input]:rounded-lg [&_input]:focus:ring-2 [&_input]:focus:ring-white/50 [&_input]:focus:border-white/50 [&_input]:transition-all [&_input]:duration-300"
               />
             </div>
             <Button className="btn-hero py-5 px-10 text-lg font-semibold shadow-2xl hover:shadow-glow-lg">
               <Search className="w-5 h-5 mr-2" />
               Search Now
             </Button>
+          </div>
+          
+          {/* Search Features */}
+          <div className="mt-6 flex flex-wrap justify-center gap-4 text-white/80 text-sm">
+            <div className="flex items-center space-x-2">
+              <Award className="w-4 h-4 text-yellow-400" />
+              <span>Verified Businesses</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Crown className="w-4 h-4 text-purple-400" />
+              <span>Premium Services</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Star className="w-4 h-4 text-blue-400" />
+              <span>Top Rated</span>
+            </div>
           </div>
         </div>
 

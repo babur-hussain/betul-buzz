@@ -12,7 +12,8 @@ import {
   Settings,
   Building,
   Shield,
-  ChevronDown
+  ChevronDown,
+  Globe
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
@@ -183,6 +184,11 @@ const Header = () => {
                       <DropdownMenuItem onClick={() => navigate('/dashboard')}>
                         <Settings className="w-4 h-4 mr-2" />
                         Settings
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem onClick={() => navigate('/google-demo')}>
+                        <Globe className="w-4 h-4 mr-2" />
+                        Google Demo
                       </DropdownMenuItem>
                       
                       <DropdownMenuSeparator />

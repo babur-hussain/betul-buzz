@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { X } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import GoogleOAuth from './GoogleOAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -59,6 +60,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 onSuccess={handleSuccess}
               />
             )}
+
+            {/* Google OAuth Section */}
+            <div className="px-6 py-4 border-t border-gray-100">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <GoogleOAuth 
+                  onSuccess={handleSuccess}
+                  onError={(error) => console.error('Google OAuth error:', error)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
