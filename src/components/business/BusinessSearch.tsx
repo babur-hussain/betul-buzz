@@ -142,9 +142,23 @@ const BusinessSearch: React.FC = () => {
   // Fetch businesses
   useEffect(() => {
     fetchBusinesses();
-    // Automatically get user location when component mounts
-    getUserLocation();
-  }, [getUserLocation]);
+  }, []);
+
+  // Separate useEffect for location detection - only after user interaction
+  useEffect(() => {
+    if (businesses.length > 0) {
+      // Don't auto-get location - wait for user interaction
+      // Set default location for now
+      const defaultLocation = {
+        lat: 23.1765,
+        lng: 77.5885,
+        address: 'Betul, MP (Default)'
+      };
+      setUserLocation(defaultLocation);
+      // Show all businesses initially
+      setFilteredBusinesses(businesses);
+    }
+  }, [businesses]);
 
   // Filter businesses when filters change
   useEffect(() => {
@@ -551,7 +565,7 @@ const BusinessSearch: React.FC = () => {
 
     setFilteredBusinesses(nearbyBusinesses);
     setSearchStatus('completed');
-  }, [businesses, userLocation, searchFilters.distance, getUserLocation]);
+  }, [businesses, userLocation, searchFilters.distance]);
 
   // Filter businesses by location and distance
   const filterBusinessesByLocation = (selectedLocation: { lat: number; lng: number; address: string }) => {
@@ -707,8 +721,18 @@ const BusinessSearch: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-700">
-                      {userLocation ? '📍 Near You' : '📍 Detecting Location...'}
+                      {userLocation ? '📍 Near You' : '📍 Betul, MP'}
                     </span>
+                    {!userLocation?.address.includes('Current') && (
+                      <Button
+                        onClick={getUserLocation}
+                        size="sm"
+                        variant="outline"
+                        className="ml-2 px-2 py-1 text-xs h-6"
+                      >
+                        Get My Location
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
@@ -744,7 +768,10 @@ const BusinessSearch: React.FC = () => {
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <MapPin className="w-4 h-4 text-blue-500" />
                     <span>
-                      {userLocation ? `Within ${searchFilters.distance}km of your location` : 'Getting your location...'}
+                      {userLocation?.address.includes('Current') 
+                        ? `Within ${searchFilters.distance}km of your location` 
+                        : `Within ${searchFilters.distance}km of ${userLocation?.address || 'Betul, MP'}`
+                      }
                     </span>
                   </div>
                   
@@ -965,7 +992,7 @@ const BusinessSearch: React.FC = () => {
             )}
             {userLocation && (
               <span className="text-sm font-normal text-green-600 ml-2">
-                📍 within {searchFilters.distance}km of you
+                📍 within {searchFilters.distance}km of {userLocation.address.includes('Current') ? 'you' : userLocation.address}
               </span>
             )}
           </h2>
@@ -1046,7 +1073,7 @@ const BusinessSearch: React.FC = () => {
                               {business.distance !== undefined && userLocation && (
                                 <div className="flex items-center text-green-600 font-medium">
                                   <Navigation className="w-4 h-4 mr-1" />
-                                  <span>{business.distance.toFixed(1)} km away</span>
+                                  <span>{business.distance.toFixed(1)} km from {userLocation.address.includes('Current') ? 'you' : userLocation.address}</span>
                                 </div>
                               )}
                             </div>
