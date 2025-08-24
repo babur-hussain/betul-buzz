@@ -1,142 +1,228 @@
-import React from 'react';
-import { Check, Star, Zap, Crown } from 'lucide-react';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { 
+  Check, 
+  Star, 
+  Zap, 
+  Crown, 
+  TrendingUp,
+  Users,
+  BarChart,
+  Phone
+} from "lucide-react";
+
+const plans = [
+  {
+    name: "Basic",
+    price: "Free",
+    period: "Forever",
+    description: "Perfect for small local businesses getting started",
+    icon: Users,
+    color: "from-gray-500 to-gray-600",
+    features: [
+      "Business listing with basic info",
+      "Contact details display",
+      "Standard search visibility",
+      "Customer reviews",
+      "Basic analytics",
+      "Mobile-friendly profile"
+    ],
+    limitations: [
+      "No featured placement",
+      "Limited photos (3 max)",
+      "Basic support"
+    ],
+    cta: "Get Started Free",
+    popular: false
+  },
+  {
+    name: "Premium",
+    price: "₹999",
+    period: "per month",
+    description: "Enhanced visibility and customer engagement tools",
+    icon: Star,
+    color: "from-primary to-blue-600",
+    features: [
+      "Everything in Basic",
+      "Featured in category listings",
+      "Unlimited photos & videos",
+      "Priority search ranking",
+      "Customer inquiry management",
+      "Advanced analytics & insights",
+      "Social media integration",
+      "Custom business hours",
+      "Promotional offers posting"
+    ],
+    limitations: [],
+    cta: "Start Premium",
+    popular: true
+  },
+  {
+    name: "Featured",
+    price: "₹1,999",
+    period: "per month",
+    description: "Maximum exposure with top placement across the platform",
+    icon: Crown,
+    color: "from-secondary to-red-600",
+    features: [
+      "Everything in Premium",
+      "Homepage featured placement",
+      "Top search results guaranteed",
+      "Featured badge on all listings",
+      "Priority customer support",
+      "WhatsApp business integration",
+      "Lead generation tools",
+      "Competitor analysis",
+      "Custom promotional campaigns",
+      "Dedicated account manager"
+    ],
+    limitations: [],
+    cta: "Go Featured",
+    popular: false
+  }
+];
 
 const SubscriptionPlans = () => {
-  const plans = [
-    {
-      id: 1,
-      name: "Free Listing",
-      icon: Star,
-      price: "₹0",
-      period: "/month",
-      description: "Get started with basic listing",
-      features: [
-        "Basic business listing",
-        "Contact information display",
-        "Business hours",
-        "1 photo upload",
-        "Customer reviews"
-      ],
-      buttonText: "Get Started",
-      buttonVariant: "outline" as const,
-      popular: false
-    },
-    {
-      id: 2,
-      name: "Premium",
-      icon: Zap,
-      price: "₹999",
-      period: "/month",
-      description: "Enhanced visibility and features",
-      features: [
-        "Everything in Free",
-        "Priority listing",
-        "Up to 10 photos",
-        "Business verification badge",
-        "Customer inquiry management",
-        "Basic analytics",
-        "Social media links"
-      ],
-      buttonText: "Upgrade Now",
-      buttonVariant: "default" as const,
-      popular: true
-    },
-    {
-      id: 3,
-      name: "Featured",
-      icon: Crown,
-      price: "₹2,499",
-      period: "/month",
-      description: "Maximum exposure and growth",
-      features: [
-        "Everything in Premium",
-        "Featured in search results",
-        "Homepage banner placement",
-        "Unlimited photos & videos",
-        "Advanced analytics",
-        "Lead generation tools",
-        "24/7 priority support",
-        "Social media promotion"
-      ],
-      buttonText: "Go Premium",
-      buttonVariant: "default" as const,
-      popular: false
-    }
-  ];
-
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-4">
-            Choose Your Business Plan
+    <section id="plans" className="py-20 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <Badge className="mb-4 bg-featured/10 text-featured border-featured/20">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Business Plans
+          </Badge>
+          
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            Choose Your <span className="text-gradient">Growth Plan</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] text-lg max-w-2xl mx-auto">
-            Select the perfect plan to showcase your business and reach more customers in Betul
+          
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Select the perfect plan to showcase your business and connect with more customers in Betul
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => {
+        {/* Plans Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {plans.map((plan, index) => {
             const IconComponent = plan.icon;
             return (
-              <div
-                key={plan.id}
-                className={`jd-service-banner relative ${
-                  plan.popular ? 'ring-2 ring-[hsl(var(--primary))]' : ''
+              <Card 
+                key={index}
+                className={`relative border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+                  plan.popular 
+                    ? 'border-primary shadow-lg scale-105' 
+                    : 'border-border hover:border-primary/50'
                 }`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[hsl(var(--primary))] text-white px-4 py-1">
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 badge-premium">
+                    <Star className="w-3 h-3 mr-1" />
                     Most Popular
                   </Badge>
                 )}
 
-                <div className="p-8">
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[hsl(var(--primary))] bg-opacity-10 mb-4">
-                      <IconComponent className="w-8 h-8 text-[hsl(var(--primary))]" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mb-2">{plan.name}</h3>
-                    <p className="text-[hsl(var(--muted-foreground))] text-sm mb-4">{plan.description}</p>
-                    
-                    <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold text-[hsl(var(--foreground))]">{plan.price}</span>
-                      <span className="text-[hsl(var(--muted-foreground))] ml-1">{plan.period}</span>
-                    </div>
+                <CardHeader className="text-center pb-4">
+                  <div className={`w-16 h-16 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                    <IconComponent className="w-8 h-8 text-white" />
                   </div>
+                  
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    {plan.name}
+                  </h3>
+                  
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                    {plan.period !== "Forever" && (
+                      <span className="text-muted-foreground">/{plan.period}</span>
+                    )}
+                  </div>
+                  
+                  <p className="text-muted-foreground text-sm">
+                    {plan.description}
+                  </p>
+                </CardHeader>
 
-                  <div className="space-y-4 mb-8">
-                    {plan.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <Check className="w-5 h-5 text-[hsl(var(--accent))] flex-shrink-0" />
-                        <span className="text-[hsl(var(--foreground))] text-sm">{feature}</span>
+                <CardContent className="space-y-4">
+                  {/* Features */}
+                  <div className="space-y-3">
+                    {plan.features.map((feature, featureIndex) => (
+                      <div key={featureIndex} className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
 
+                  {/* Limitations */}
+                  {plan.limitations.length > 0 && (
+                    <div className="border-t pt-4 space-y-2">
+                      <p className="text-xs text-muted-foreground font-medium">Limitations:</p>
+                      {plan.limitations.map((limitation, limitIndex) => (
+                        <div key={limitIndex} className="flex items-start space-x-2">
+                          <span className="text-xs text-muted-foreground">• {limitation}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+
+                <CardFooter className="pt-4">
                   <Button 
-                    className={`w-full ${plan.buttonVariant === 'default' ? 'jd-btn-primary' : ''}`}
-                    variant={plan.buttonVariant}
-                    size="lg"
+                    className={`w-full py-3 ${
+                      plan.popular 
+                        ? 'btn-hero' 
+                        : 'border border-primary text-primary hover:bg-primary hover:text-white'
+                    } transition-all duration-300`}
                   >
-                    {plan.buttonText}
+                    {plan.cta}
                   </Button>
-                </div>
-              </div>
+                </CardFooter>
+              </Card>
             );
           })}
         </div>
 
+        {/* Additional Info */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
+            <BarChart className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h4 className="font-semibold text-foreground mb-2">Performance Tracking</h4>
+            <p className="text-sm text-muted-foreground">Monitor your business performance with detailed analytics</p>
+          </div>
+          
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
+            <Phone className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h4 className="font-semibold text-foreground mb-2">24/7 Support</h4>
+            <p className="text-sm text-muted-foreground">Get help whenever you need it with our dedicated support team</p>
+          </div>
+          
+          <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-soft border border-white/20">
+            <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h4 className="font-semibold text-foreground mb-2">Instant Activation</h4>
+            <p className="text-sm text-muted-foreground">Your business listing goes live immediately after signup</p>
+          </div>
+        </div>
+
+        {/* CTA Section */}
         <div className="text-center mt-12">
-          <p className="text-[hsl(var(--muted-foreground))] mb-4">
-            Need a custom solution for your business?
-          </p>
-          <Button variant="outline" size="lg">
-            Contact Sales
-          </Button>
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8 border border-primary/20">
+            <h3 className="text-2xl font-bold text-foreground mb-4">
+              Ready to grow your business?
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Join thousands of successful businesses already on BetulBuzz
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button className="btn-hero px-8 py-3">
+                Start Free Trial
+              </Button>
+              <Button variant="outline" className="px-8 py-3">
+                Schedule Demo
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
