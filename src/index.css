@@ -335,9 +335,8 @@
   .card-tilt:hover {
     transform: perspective(1000px) rotateX(5deg) rotateY(5deg) scale3d(1.05, 1.05, 1.05);
   }
-}
 
-/* Enhanced Keyframe Animations */
+  /* Enhanced Keyframe Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   25% { transform: translateY(-10px) rotate(1deg); }
