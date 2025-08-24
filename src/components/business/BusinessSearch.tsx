@@ -32,6 +32,9 @@ import {
 import PlacesAutocomplete from '../ui/places-autocomplete';
 import EnhancedGoogleMap from '../ui/enhanced-google-map';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
+import { UserPreferencesService } from '../../services/userPreferencesService';
+import { SavedBusiness, FavoriteBusiness } from '../../types/userPreferences';
 
 interface Business {
   id: string;
@@ -57,6 +60,7 @@ interface Business {
   business_hours: any;
   created_at: string;
   updated_at: string;
+  imageUrl: string;
 }
 
 interface BusinessWithDistance extends Business {
@@ -77,8 +81,71 @@ interface SearchFilters {
   priceRange: string;
 }
 
+// Get category-based fallback images
+const getCategoryImage = (category: string): string => {
+  const categoryImages: { [key: string]: string } = {
+    'restaurant': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
+    'food': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
+    'cafe': 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop',
+    'hospital': 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
+    'health': 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
+    'clinic': 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
+    'auto_service': 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop',
+    'car_repair': 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop',
+    'car_dealer': 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop',
+    'beauty_salon': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=300&fit=crop',
+    'spa': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=300&fit=crop',
+    'electronics_store': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+    'store': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+    'shopping_mall': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+    'pharmacy': 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=300&fit=crop',
+    'bank': 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop',
+    'school': 'https://images.unsplash.com/photo-1523050854058-8df90110c9c1?w=400&h=300&fit=crop',
+    'university': 'https://images.unsplash.com/photo-1523050854058-8df90110c9c1?w=400&h=300&fit=crop',
+    'gym': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+    'fitness': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+    'hotel': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+    'lodging': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+    'gas_station': 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=400&h=300&fit=crop',
+    'parking': 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=400&h=300&fit=crop',
+    'bus_station': 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=400&h=300&fit=crop',
+    'train_station': 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=400&h=300&fit=crop',
+    'airport': 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=400&h=300&fit=crop',
+    'police': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    'fire_station': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    'post_office': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    'library': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+    'museum': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+    'movie_theater': 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=300&fit=crop',
+    'amusement_park': 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=300&fit=crop',
+    'zoo': 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=300&fit=crop',
+    'park': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+    'business': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop'
+  };
+
+  // Try to find exact match first
+  if (categoryImages[category]) {
+    return categoryImages[category];
+  }
+
+  // Try to find partial match
+  const partialMatch = Object.keys(categoryImages).find(key => 
+    category.toLowerCase().includes(key.toLowerCase()) || 
+    key.toLowerCase().includes(category.toLowerCase())
+  );
+
+  if (partialMatch) {
+    return categoryImages[partialMatch];
+  }
+
+  // Default business image
+  return categoryImages['business'];
+};
+
 const BusinessSearch: React.FC = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [heroSearchResults, setHeroSearchResults] = useState<Business[]>([]);
+  const [heroSearchQuery, setHeroSearchQuery] = useState<string>('');
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
@@ -100,47 +167,28 @@ const BusinessSearch: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'completed'>('idle');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  
+  // User preferences state
+  const [savedBusinesses, setSavedBusinesses] = useState<SavedBusiness[]>([]);
+  const [favoriteBusinesses, setFavoriteBusinesses] = useState<FavoriteBusiness[]>([]);
+  const [userPreferencesLoaded, setUserPreferencesLoaded] = useState(false);
+  const [showLocationPopup, setShowLocationPopup] = useState(false);
+  
+  // Get auth context
+  const authContext = useAuth();
+  const user = authContext?.user;
+  const isAuthenticated = authContext?.isAuthenticated;
 
-  // Business categories
-  const businessCategories = [
-    'All Categories',
-    'Restaurant & Food',
-    'Healthcare',
-    'Education',
-    'Retail & Shopping',
-    'Automotive',
-    'Beauty & Wellness',
-    'Electronics & Technology',
-    'Home & Garden',
-    'Technology',
-    'Entertainment',
-    'Professional Services',
-    'Real Estate',
-    'Travel & Tourism',
-    'Sports & Fitness',
-    'Art & Culture',
-    'Other'
-  ];
+  // Business categories - will be populated from Google Places API
+  const [businessCategories, setBusinessCategories] = useState<string[]>(['All Categories']);
 
-  // Services
-  const availableServices = [
-    'Home Delivery',
-    'Online Booking',
-    '24/7 Service',
-    'Free Consultation',
-    'Warranty',
-    'Installation',
-    'Maintenance',
-    'Emergency Service',
-    'Mobile Service',
-    'Pickup & Drop'
-  ];
+  // Services - will be populated from Google Places API
+  const [availableServices, setAvailableServices] = useState<string[]>([]);
 
-  // Price ranges
+  // Price ranges - simplified for now
   const priceRanges = [
     { value: 'all', label: 'All Prices' },
     { value: 'low', label: 'Budget Friendly' },
-    { value: 'medium', label: 'Mid Range' },
     { value: 'high', label: 'Premium' }
   ];
 
@@ -148,6 +196,51 @@ const BusinessSearch: React.FC = () => {
   useEffect(() => {
     fetchBusinesses();
   }, []);
+  
+  // Listen for HeroSection search results
+  useEffect(() => {
+    const checkHeroSearchResults = () => {
+      const storedResults = localStorage.getItem('heroSearchResults');
+      const storedQuery = localStorage.getItem('heroSearchQuery');
+      
+      if (storedResults && storedQuery) {
+        try {
+          const results = JSON.parse(storedResults);
+          console.log('🏢 HeroSection search results received:', results.length, 'businesses');
+          setHeroSearchResults(results);
+          setHeroSearchQuery(storedQuery);
+          
+          // Update the main businesses state with HeroSection results
+          setBusinesses(results);
+          setFilteredBusinesses(results);
+          
+          // Also update search filters to show the query
+          setSearchFilters(prev => ({ ...prev, query: storedQuery }));
+          
+          // Clear the stored results to avoid conflicts
+          localStorage.removeItem('heroSearchResults');
+          localStorage.removeItem('heroSearchQuery');
+        } catch (error) {
+          console.error('Error parsing HeroSection results:', error);
+        }
+      }
+    };
+    
+    // Check immediately
+    checkHeroSearchResults();
+    
+    // Set up interval to check for new results
+    const interval = setInterval(checkHeroSearchResults, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Load user preferences when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user && !userPreferencesLoaded && authContext) {
+      loadUserPreferences();
+    }
+  }, [isAuthenticated, user, userPreferencesLoaded, authContext]);
 
   // Separate useEffect for location detection - only after user interaction
   useEffect(() => {
@@ -190,187 +283,18 @@ const BusinessSearch: React.FC = () => {
       console.log('🏢 Data length:', data?.length);
 
       if (data) {
-        // Add mock businesses if none exist (for demo purposes)
+        // Use only database businesses, no mock data
         let businessData = data;
         if (data.length === 0) {
-          console.log('🏢 No businesses in DB, using mock data');
-          businessData = [
-            {
-              id: '1',
-              name: 'Kapoor & Sons Electronics',
-              description: 'Premium electronics store offering latest smartphones, laptops, home appliances, and electronic gadgets with expert technical support.',
-              category: 'Electronics & Technology',
-              address: 'Kapoor Complex, Housing Board Colony Rd, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-1234567890',
-              email: 'info@kapoorandsons.com',
-              website: 'https://kapoorandsons.com',
-              services: ['Mobile Phones', 'Laptops & Computers', 'Home Appliances', 'Technical Support', 'Installation Service'],
-              tags: ['Electronics', 'Smartphones', 'Laptops', 'Home Appliances', 'Technology Store'],
-              rating: 4.8,
-              total_reviews: 156,
-              is_verified: true,
-              is_featured: true,
-              is_premium: false,
-              status: 'active',
-              location: { lat: 23.1765, lng: 77.5885 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '2',
-              name: 'Betul Healthcare Center',
-              description: 'Comprehensive healthcare services with experienced doctors and modern facilities.',
-              category: 'Healthcare',
-              address: 'Hospital Road, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-9876543210',
-              email: 'care@betulhealth.com',
-              website: 'https://betulhealth.com',
-              services: ['24/7 Service', 'Emergency Service', 'Consultation', 'Lab Tests'],
-              tags: ['Healthcare', 'Hospital', 'Medical', 'Emergency'],
-              rating: 4.6,
-              total_reviews: 89,
-              is_verified: true,
-              is_featured: false,
-              is_premium: true,
-              status: 'active',
-              location: { lat: 23.1780, lng: 77.5900 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '3',
-              name: 'Betul Tech Solutions',
-              description: 'Professional IT services, web development, and digital marketing solutions.',
-              category: 'Technology',
-              address: 'Tech Park, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-8765432109',
-              email: 'hello@betultech.com',
-              website: 'https://betultech.com',
-              services: ['Web Development', 'Digital Marketing', 'IT Support', 'Mobile Apps'],
-              tags: ['Technology', 'IT Services', 'Digital', 'Web Development'],
-              rating: 4.9,
-              total_reviews: 234,
-              is_verified: true,
-              is_featured: true,
-              is_premium: true,
-              status: 'active',
-              location: { lat: 23.1750, lng: 77.5860 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '4',
-              name: 'Betul Auto Service',
-              description: 'Complete automotive service and repair center with certified mechanics.',
-              category: 'Automotive',
-              address: 'Auto Nagar, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-7654321098',
-              email: 'service@betulauto.com',
-              website: 'https://betulauto.com',
-              services: ['Car Service', 'Repair', 'Towing', 'Spare Parts'],
-              tags: ['Automotive', 'Car Service', 'Repair', 'Spare Parts'],
-              rating: 4.5,
-              total_reviews: 67,
-              is_verified: true,
-              is_featured: false,
-              is_premium: false,
-              status: 'active',
-              location: { lat: 23.1790, lng: 77.5850 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '5',
-              name: 'Betul Beauty Salon',
-              description: 'Professional beauty and wellness services for men and women.',
-              category: 'Beauty & Wellness',
-              address: 'Beauty Plaza, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-6543210987',
-              email: 'beauty@betulsalon.com',
-              website: 'https://betulsalon.com',
-              services: ['Hair Styling', 'Facial', 'Manicure', 'Pedicure'],
-              tags: ['Beauty', 'Salon', 'Wellness', 'Hair Care'],
-              rating: 4.7,
-              total_reviews: 123,
-              is_verified: true,
-              is_featured: true,
-              is_premium: false,
-              status: 'active',
-              location: { lat: 23.1740, lng: 77.5890 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '6',
-              name: 'Keiken Cafe & Restaurant',
-              description: 'Modern Japanese-inspired cafe with fusion cuisine, specialty coffee, and cozy atmosphere. Perfect for meetings and casual dining.',
-              category: 'Restaurant & Food',
-              address: 'Cafe Street, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-5432109876',
-              email: 'hello@keikencafe.com',
-              website: 'https://keikencafe.com',
-              services: ['Dine-in', 'Takeaway', 'Coffee', 'Fusion Food', 'WiFi'],
-              tags: ['Cafe', 'Restaurant', 'Japanese', 'Fusion', 'Coffee', 'Modern'],
-              rating: 4.9,
-              total_reviews: 89,
-              is_verified: true,
-              is_featured: true,
-              is_premium: true,
-              status: 'active',
-              location: { lat: 23.1770, lng: 77.5870 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: '7',
-              name: 'Kapoor & Sons Electronics',
-              description: 'Premium electronics store offering latest smartphones, laptops, home appliances, and electronic gadgets with expert technical support.',
-              category: 'Electronics & Technology',
-              address: 'Kapoor Complex, Housing Board Colony Rd, Betul',
-              city: 'Betul',
-              state: 'Madhya Pradesh',
-              pincode: '460001',
-              phone: '+91-1234567890',
-              email: 'info@kapoorandsons.com',
-              website: 'https://kapoorandsons.com',
-              services: ['Mobile Phones', 'Laptops & Computers', 'Home Appliances', 'Technical Support', 'Installation Service'],
-              tags: ['Electronics', 'Smartphones', 'Laptops', 'Home Appliances', 'Technology Store'],
-              rating: 4.8,
-              total_reviews: 156,
-              is_verified: true,
-              is_featured: true,
-              is_premium: false,
-              status: 'active',
-              location: { lat: 23.1760, lng: 77.5890 },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }
-          ];
+          console.log('🏢 No businesses in DB, will use Google Places API for live search');
+          businessData = [];
+        } else {
+          // Add imageUrl field to database businesses
+          businessData = data.map(business => ({
+            ...business,
+            imageUrl: business.image_url || getCategoryImage(business.category || 'business')
+          }));
+          console.log('🏢 Added imageUrl to database businesses');
         }
         
         console.log('🏢 Setting businesses state with:', businessData.length, 'businesses');
@@ -382,6 +306,82 @@ const BusinessSearch: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Load user preferences (saved and favorite businesses)
+  const loadUserPreferences = async () => {
+    if (!user?.id || !authContext) return;
+    
+    try {
+      console.log('🔍 Loading user preferences for:', user.id);
+      
+      // Load saved businesses
+      const saved = await UserPreferencesService.getSavedBusinesses(user.id);
+      setSavedBusinesses(saved);
+      
+      // Load favorite businesses
+      const favorites = await UserPreferencesService.getFavoriteBusinesses(user.id);
+      setFavoriteBusinesses(favorites);
+      
+      setUserPreferencesLoaded(true);
+      console.log('✅ User preferences loaded:', { saved: saved.length, favorites: favorites.length });
+    } catch (error) {
+      console.error('❌ Error loading user preferences:', error);
+    }
+  };
+  
+  // Handle saving a business
+  const handleSaveBusiness = async (business: Business) => {
+    if (!isAuthenticated || !user?.id || !authContext) {
+      alert('Please log in to save businesses');
+      return;
+    }
+    
+    try {
+      const success = await UserPreferencesService.saveBusiness(user.id, business);
+      if (success) {
+        // Reload preferences to get updated state
+        await loadUserPreferences();
+        alert('Business saved successfully!');
+      } else {
+        alert('Failed to save business');
+      }
+    } catch (error) {
+      console.error('Error saving business:', error);
+      alert('Error saving business');
+    }
+  };
+  
+  // Handle favoriting a business
+  const handleFavoriteBusiness = async (business: Business) => {
+    if (!isAuthenticated || !user?.id || !authContext) {
+      alert('Please log in to favorite businesses');
+      return;
+    }
+    
+    try {
+      const success = await UserPreferencesService.toggleFavoriteBusiness(user.id, business);
+      if (success) {
+        // Reload preferences to get updated state
+        await loadUserPreferences();
+        alert('Business favorited successfully!');
+      } else {
+        alert('Failed to favorite business');
+      }
+    } catch (error) {
+      console.error('Error favoriting business:', error);
+      alert('Error favoriting business');
+    }
+  };
+  
+  // Check if a business is saved by current user
+  const isBusinessSaved = (businessId: string): boolean => {
+    return savedBusinesses.some(saved => saved.business_id === businessId);
+  };
+  
+  // Check if a business is favorited by current user
+  const isBusinessFavorited = (businessId: string): boolean => {
+    return favoriteBusinesses.some(favorite => favorite.business_id === businessId);
   };
 
   const filterBusinesses = useCallback(() => {
@@ -533,7 +533,7 @@ const BusinessSearch: React.FC = () => {
   }, []);
 
   // Smart search that automatically finds businesses near user
-  const searchNearbyBusinesses = useCallback(async (query: string) => {
+    const searchNearbyBusinesses = useCallback(async (query: string) => {
     console.log('🔍 searchNearbyBusinesses called with query:', query);
     console.log('📍 userLocation:', userLocation);
     console.log('🏢 businesses count:', businesses.length);
@@ -552,7 +552,7 @@ const BusinessSearch: React.FC = () => {
     if (query.trim()) {
       const queryWords = query.toLowerCase().trim().split(' ').filter(word => word.length > 0);
       console.log('🔍 Search query words:', queryWords);
-      
+
       filtered = filtered.filter(business => {
         const businessText = [
           business.name.toLowerCase(),
@@ -563,12 +563,12 @@ const BusinessSearch: React.FC = () => {
           business.address.toLowerCase(),
           business.city.toLowerCase()
         ].join(' ');
-        
+
         const matches = queryWords.every(word => businessText.includes(word));
         console.log(`🔍 Business "${business.name}" matches "${query}":`, matches);
         return matches;
       });
-      
+
       console.log('🔍 After text filtering:', filtered.length);
     }
 
@@ -588,7 +588,7 @@ const BusinessSearch: React.FC = () => {
       }
     }
 
-    // For now, skip distance filtering to fix search
+    // Show results (either local or empty)
     console.log('🔍 Final filtered businesses:', filtered.length);
     console.log('🔍 Final results:', filtered.map(b => b.name));
 
@@ -611,48 +611,186 @@ const BusinessSearch: React.FC = () => {
       const map = new google.maps.Map(document.createElement('div'));
       const service = new google.maps.places.PlacesService(map);
 
-      // Search for places
+      // Search for places - use nearbySearch for better photo access
       const searchRequest = {
-        query: `${query} in ${location.address}`,
         location: new google.maps.LatLng(location.lat, location.lng),
-        radius: searchFilters.distance * 1000 // Convert km to meters
+        radius: searchFilters.distance * 1000, // Convert km to meters
+        keyword: query,
+        type: 'establishment'
       };
 
       return new Promise<Business[]>((resolve, reject) => {
-        service.textSearch(searchRequest, (results, status) => {
+        // Use nearbySearch for better photo access, then get details for each place
+        service.nearbySearch(searchRequest, async (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            console.log('🔍 Google Places results:', results);
+            console.log('🔍 Google Places nearbySearch results:', results);
             
-            const businesses: Business[] = results.map((place, index) => ({
-              id: `google_${place.place_id || index}`,
-              name: place.name || 'Unknown Business',
-              description: place.formatted_address || '',
-              category: place.types?.[0]?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
-              address: place.formatted_address || '',
-              city: place.vicinity || location.address,
-              state: location.address.split(', ')[1] || 'Madhya Pradesh',
-              pincode: '460001',
-              phone: place.formatted_phone_number || '+91-XXXXXXXXXX',
-              email: 'info@business.com',
-              website: place.website || '',
-              services: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
-              tags: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
-              rating: place.rating || 0,
-              total_reviews: place.user_ratings_total || 0,
-              is_verified: true,
-              is_featured: false,
-              is_premium: false,
-              status: 'active',
-              location: {
-                lat: place.geometry?.location?.lat() || location.lat,
-                lng: place.geometry?.location?.lng() || location.lng
-              },
-              business_hours: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }));
+            // Get detailed information for each place to access photos
+            const detailedBusinesses = await Promise.all(
+              results.map(async (place, index) => {
+                try {
+                  // Get place details to access photos
+                  const detailsRequest = {
+                    placeId: place.place_id,
+                    fields: ['name', 'formatted_address', 'geometry', 'types', 'rating', 'user_ratings_total', 'formatted_phone_number', 'website', 'photos']
+                  };
+                  
+                  return new Promise<Business>((resolveDetail) => {
+                    service.getDetails(detailsRequest, (placeDetails, detailsStatus) => {
+                      if (detailsStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+                        console.log('🔍 Place details for:', placeDetails.name, 'Photos:', placeDetails.photos);
+                        
+                        // Get real image from Google Places or use category-based fallback
+                        let imageUrl = '';
+                        console.log('🔍 Checking photos for:', placeDetails.name);
+                        console.log('🔍 Photos array:', placeDetails.photos);
+                        console.log('🔍 Photos length:', placeDetails.photos?.length);
+                        
+                        if (placeDetails.photos && placeDetails.photos.length > 0) {
+                          // Use Google Places photo
+                          const photo = placeDetails.photos[0];
+                          console.log('🔍 Photo object:', photo);
+                          console.log('🔍 Photo reference:', photo.photo_reference);
+                          
+                          // Try different URL formats for Google Places photos
+                          const photoUrl1 = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&maxheight=300&photo_reference=${photo.photo_reference}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+                          const photoUrl2 = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photo.photo_reference}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+                          
+                          console.log('📸 Photo URL 1:', photoUrl1);
+                          console.log('📸 Photo URL 2:', photoUrl2);
+                          
+                          // Use the first URL format
+                          imageUrl = photoUrl1;
+                          console.log('📸 Using Google Places photo for:', placeDetails.name, 'URL:', imageUrl);
+                        } else {
+                          // Use category-based fallback images
+                          const category = placeDetails.types?.[0] || 'business';
+                          imageUrl = getCategoryImage(category);
+                          console.log('🖼️ Using fallback image for:', placeDetails.name, 'Category:', category, 'Fallback URL:', imageUrl);
+                          
+                          // Test if the fallback image URL is valid
+                          const testImg = new Image();
+                          testImg.onload = () => console.log('✅ Fallback image test successful for:', placeDetails.name);
+                          testImg.onerror = () => console.log('❌ Fallback image test failed for:', placeDetails.name);
+                          testImg.src = imageUrl;
+                        }
 
-            resolve(businesses);
+                        const business: Business = {
+                          id: `google_${placeDetails.place_id || index}`,
+                          name: placeDetails.name || 'Unknown Business',
+                          description: placeDetails.formatted_address || '',
+                          category: placeDetails.types?.[0]?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
+                          address: placeDetails.formatted_address || '',
+                          city: place.vicinity || location.address,
+                          state: location.address.split(', ')[1] || 'Madhya Pradesh',
+                          pincode: '460001',
+                          phone: placeDetails.formatted_phone_number || '+91-XXXXXXXXXX',
+                          email: 'info@business.com',
+                          website: placeDetails.website || '',
+                          services: placeDetails.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                          tags: placeDetails.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                          rating: placeDetails.rating || 0,
+                          total_reviews: placeDetails.user_ratings_total || 0,
+                          is_verified: true,
+                          is_featured: false,
+                          is_premium: false,
+                          status: 'active',
+                          location: {
+                            lat: placeDetails.geometry?.location?.lat() || location.lat,
+                            lng: placeDetails.geometry?.location?.lng() || location.lng
+                          },
+                          business_hours: {},
+                          created_at: new Date().toISOString(),
+                          updated_at: new Date().toISOString(),
+                          imageUrl: imageUrl
+                        };
+                        
+                        resolveDetail(business);
+                      } else {
+                        // Fallback to basic place info if details fail
+                        console.log('🔍 Place details failed for:', place.name, 'Status:', detailsStatus);
+                        
+                        const category = place.types?.[0] || 'business';
+                        const imageUrl = getCategoryImage(category);
+                        console.log('🖼️ Fallback image for failed details:', place.name, 'Category:', category, 'URL:', imageUrl);
+                        
+                        const business: Business = {
+                          id: `google_${place.place_id || index}`,
+                          name: place.name || 'Unknown Business',
+                          description: place.formatted_address || '',
+                          category: place.types?.[0]?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
+                          address: place.formatted_address || '',
+                          city: place.vicinity || location.address,
+                          state: location.address.split(', ')[1] || 'Madhya Pradesh',
+                          pincode: '460001',
+                          phone: place.formatted_phone_number || '+91-XXXXXXXXXX',
+                          email: 'info@business.com',
+                          website: place.website || '',
+                          services: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                          tags: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                          rating: place.rating || 0,
+                          total_reviews: place.user_ratings_total || 0,
+                          is_verified: true,
+                          is_featured: false,
+                          is_premium: false,
+                          status: 'active',
+                          location: {
+                            lat: place.geometry?.location?.lat() || location.lat,
+                            lng: place.geometry?.location?.lng() || location.lng
+                          },
+                          business_hours: {},
+                          created_at: new Date().toISOString(),
+                          updated_at: new Date().toISOString(),
+                          imageUrl: imageUrl
+                        };
+                        
+                        resolveDetail(business);
+                      }
+                    });
+                  });
+                } catch (error) {
+                  console.error('🔍 Error getting place details:', error);
+                  // Return basic business info with fallback image
+                  const category = place.types?.[0] || 'business';
+                  const imageUrl = getCategoryImage(category);
+                  
+                  const business: Business = {
+                    id: `google_${place.place_id || index}`,
+                    name: place.name || 'Unknown Business',
+                    description: place.formatted_address || '',
+                    category: place.types?.[0]?.replace(/\b\w/g, l => l.toUpperCase()) || 'Business',
+                    address: place.formatted_address || '',
+                    city: place.vicinity || location.address,
+                    state: location.address.split(', ')[1] || 'Madhya Pradesh',
+                    pincode: '460001',
+                    phone: place.formatted_phone_number || '+91-XXXXXXXXXX',
+                    email: 'info@business.com',
+                    website: place.website || '',
+                    services: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                    tags: place.types?.map(t => t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())) || [],
+                    rating: place.rating || 0,
+                    total_reviews: place.user_ratings_total || 0,
+                    is_verified: true,
+                    is_featured: false,
+                    is_premium: false,
+                    status: 'active',
+                    location: {
+                      lat: place.geometry?.location?.lat() || location.lat,
+                      lng: place.geometry?.location?.lng() || location.lng
+                    },
+                    business_hours: {},
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    imageUrl: imageUrl
+                  };
+                  
+                  return business;
+                }
+              })
+            );
+            
+            console.log('🔍 Detailed businesses with images:', detailedBusinesses);
+            resolve(detailedBusinesses);
           } else {
             console.log('🔍 Google Places search failed:', status);
             resolve([]);
@@ -673,8 +811,10 @@ const BusinessSearch: React.FC = () => {
         return;
       }
 
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+                    const script = document.createElement('script');
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      console.log('🔑 Google Maps API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
       
@@ -770,6 +910,18 @@ const BusinessSearch: React.FC = () => {
     return badges;
   };
 
+  // Don't render if auth context is not ready
+  if (!authContext) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -782,68 +934,57 @@ const BusinessSearch: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="text-sm font-mono">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>🏢 Total: {businesses.length}</div>
-                <div>🔍 Filtered: {filteredBusinesses.length}</div>
-                <div>📍 Location: {userLocation?.address || 'None'}</div>
-                <div>🔎 Query: "{searchFilters.query}"</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
+    <div id="business-search-section" className="space-y-6">
       {/* Search Header */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Find the Perfect Business
+            {heroSearchQuery ? `Search Results for "${heroSearchQuery}"` : 'Find the Perfect Business'}
           </CardTitle>
           <p className="text-gray-600 mt-2">
-            Discover verified businesses in Betul and surrounding areas
+            {heroSearchQuery 
+              ? `Found ${heroSearchResults.length} businesses from your search. Use the filters below to refine results.`
+              : 'Discover verified businesses in Betul and surrounding areas. Live Google Places API search for real-time results.'
+            }
           </p>
         </CardHeader>
         <CardContent>
-          <div className="max-w-4xl mx-auto space-y-4">
-            {/* Single Smart Search Bar - Auto Location Detection */}
+          <div className="max-w-2xl mx-auto">
+            {/* Simple Search Bar */}
             <div className="relative">
-              <div className="flex items-center bg-white rounded-2xl shadow-xl border-2 border-gray-100 hover:border-blue-200 focus-within:border-blue-400 transition-all duration-300 overflow-hidden">
+              <div className="flex items-center bg-white rounded-full border-2 border-purple-300 hover:border-purple-400 focus-within:border-purple-500 transition-all duration-200 shadow-sm">
                 {/* Search Icon */}
-                <div className="pl-6 pr-4">
-                  <Search className="w-6 h-6 text-gray-400" />
+                <div className="pl-4 pr-3">
+                  <Search className="w-5 h-5 text-purple-500" />
                 </div>
                 
-                {/* Single Search Input */}
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Search for businesses, services, or anything you need..."
-                    value={searchFilters.query}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      console.log('🔍 Input changed to:', value);
-                      setSearchFilters(prev => ({ ...prev, query: value }));
-                      
-                      // Real-time search as user types
-                      if (value.trim()) {
-                        console.log('🔍 Triggering search for:', value);
-                        setTimeout(() => {
-                          searchNearbyBusinesses(value);
-                        }, 300);
-                      } else {
-                        // Show nearby businesses if search is empty
-                        console.log('🔍 Clearing search, showing all nearby');
-                        searchNearbyBusinesses('');
-                      }
-                    }}
-                    className="w-full py-5 pr-12 text-lg font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
-                  />
+                {/* Search Input */}
+                <input
+                  type="text"
+                  placeholder="Search for businesses, services, or anything you need..."
+                  value={searchFilters.query}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    console.log('🔍 Input changed to:', value);
+                    setSearchFilters(prev => ({ ...prev, query: value }));
+                    
+                    // Real-time search as user types
+                    if (value.trim()) {
+                      console.log('🔍 Triggering search for:', value);
+                      setTimeout(() => {
+                        searchNearbyBusinesses(value);
+                      }, 300);
+                    } else {
+                      // Show nearby businesses if search is empty
+                      console.log('🔍 Clearing search, showing all nearby');
+                      searchNearbyBusinesses('');
+                    }
+                  }}
+                  className="flex-1 py-3 pr-4 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none border-none bg-transparent"
+                />
+                
+                {/* Right Side Icons */}
+                <div className="flex items-center space-x-2 pr-4">
                   {/* Clear Button */}
                   {searchFilters.query && (
                     <button
@@ -851,59 +992,147 @@ const BusinessSearch: React.FC = () => {
                         setSearchFilters(prev => ({ ...prev, query: '' }));
                         searchNearbyBusinesses('');
                       }}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+                      title="Clear search"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   )}
+                  
+                  {/* Location Icon - Click to open popup */}
+                  <button
+                    onClick={() => setShowLocationPopup(true)}
+                    className="p-1 text-purple-500 hover:text-purple-600 transition-colors rounded-full hover:bg-purple-50"
+                    title="Select location"
+                  >
+                    <MapPin className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Filter Icon */}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-1 transition-colors rounded-full hover:bg-gray-100 ${
+                      showFilters ? 'text-purple-600 bg-purple-50' : 'text-purple-500 hover:text-purple-600'
+                    }`}
+                    title="Show filters"
+                  >
+                    <Filter className="w-4 h-4" />
+                  </button>
+                </div>
                 </div>
                 
-                {/* Location Status */}
-                <div className="px-6 py-2 bg-blue-50 border-l border-blue-200">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">
-                      {userLocation ? '📍 Near You' : '📍 Betul, MP'}
-                    </span>
-                    {!userLocation?.address.includes('Current') && (
-                      <Button
-                        onClick={getUserLocation}
-                        size="sm"
-                        variant="outline"
-                        className="ml-2 px-2 py-1 text-xs h-6"
+                {/* Current Location Display */}
+                <div className="mt-2 text-center">
+                  <span className="text-sm text-gray-600">
+                    {userLocation ? `📍 ${userLocation.address}` : '📍 Betul, MP'}
+                  </span>
+                </div>
+                
+                {/* Location Popup */}
+                {showLocationPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Select Location</h3>
+                      <button
+                        onClick={() => setShowLocationPopup(false)}
+                        className="text-gray-400 hover:text-gray-600"
                       >
-                        Get My Location
-                      </Button>
-                    )}
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Current Location Button */}
+                      <button
+                        onClick={() => {
+                          getUserLocation();
+                          setShowLocationPopup(false);
+                        }}
+                        className="w-full flex items-center space-x-3 p-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <MapPin className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Use Current Location</div>
+                          <div className="text-sm text-gray-500">Get businesses near you</div>
+                        </div>
+                      </button>
+                      
+                      {/* Manual Location Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Or enter location manually
+                        </label>
+                        <PlacesAutocomplete
+                          onPlaceSelect={(place) => {
+                            if (place.geometry?.location) {
+                              const newLocation = {
+                                lat: place.geometry.location.lat(),
+                                lng: place.geometry.location.lng(),
+                                address: place.formatted_address || place.name || 'Selected Location'
+                              };
+                              setUserLocation(newLocation);
+                              setShowLocationPopup(false);
+                              // Search businesses in the new location
+                              searchNearbyBusinesses(searchFilters.query);
+                            }
+                          }}
+                          placeholder="Enter city, area, or address..."
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      {/* Popular Locations */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Popular locations
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {['Betul, MP', 'Housing Board Colony', 'Ganj, Betul', 'MP Nagar'].map((location) => (
+                            <button
+                              key={location}
+                              onClick={() => {
+                                // Set default coordinates for popular locations
+                                const defaultCoords = {
+                                  'Betul, MP': { lat: 23.1765, lng: 77.5885 },
+                                  'Housing Board Colony': { lat: 23.1765, lng: 77.5885 },
+                                  'Ganj, Betul': { lat: 23.1765, lng: 77.5885 },
+                                  'MP Nagar': { lat: 23.1765, lng: 77.5885 }
+                                };
+                                
+                                const coords = defaultCoords[location as keyof typeof defaultCoords];
+                                if (coords) {
+                                  setUserLocation({
+                                    ...coords,
+                                    address: location
+                                  });
+                                  setShowLocationPopup(false);
+                                  searchNearbyBusinesses(searchFilters.query);
+                                }
+                              }}
+                              className="p-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+                            >
+                              {location}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Search Button */}
-                <Button 
-                  onClick={() => {
-                    setSearchStatus('searching');
-                    setTimeout(() => {
-                      searchNearbyBusinesses(searchFilters.query);
-                      setSearchStatus('completed');
-                    }, 500);
-                  }}
-                  disabled={searchStatus === 'searching'}
-                  className="h-full px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-l-none border-l-2 border-gray-100"
-                >
-                  {searchStatus === 'searching' ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-5 h-5 mr-2" />
-                      Search
-                    </>
-                  )}
-                </Button>
+              )}
+              
+              {/* Google Places API Info */}
+              <div className="mt-3 text-center">
+                <p className="text-sm text-gray-500">
+                  🔍 <span className="font-medium">Live Search:</span> Powered by Google Places API for real-time business results
+                </p>
               </div>
               
               {/* Location Info & Quick Actions */}
@@ -1125,113 +1354,138 @@ const BusinessSearch: React.FC = () => {
       )}
 
       {/* Results Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold">
-            {filteredBusinesses.length} businesses found
-            {searchFilters.query && (
-              <span className="text-sm font-normal text-blue-600 ml-2">
-                for "{searchFilters.query}"
-              </span>
+      <div className="mt-8 px-4 sm:px-6 lg:px-8 py-6 bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+              {filteredBusinesses.length} businesses found
+              {searchFilters.query && (
+                <span className="block sm:inline text-sm font-normal text-blue-600 sm:ml-2 mt-1 sm:mt-0">
+                  for "{searchFilters.query}"
+                </span>
+              )}
+              {userLocation && (
+                <span className="block sm:inline text-sm font-normal text-green-600 sm:ml-2 mt-1 sm:mt-0">
+                  📍 within {searchFilters.distance}km of {userLocation.address.includes('Current') ? 'you' : userLocation.address}
+                </span>
+              )}
+            </h2>
+            
+            {/* Search Summary */}
+            {searchStatus === 'completed' && filteredBusinesses.length > 0 && (
+              <div className="text-sm text-gray-600 bg-green-50 px-3 py-1 rounded-full border border-green-200 w-fit">
+                ✅ Search completed successfully
+              </div>
             )}
-            {userLocation && (
-              <span className="text-sm font-normal text-green-600 ml-2">
-                📍 within {searchFilters.distance}km of {userLocation.address.includes('Current') ? 'you' : userLocation.address}
-              </span>
-            )}
-          </h2>
+            
+            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rating">Sort by Rating</SelectItem>
+                <SelectItem value="distance">Sort by Distance</SelectItem>
+                <SelectItem value="name">Sort by Name</SelectItem>
+                <SelectItem value="newest">Sort by Newest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
-          {/* Search Summary */}
-          {searchStatus === 'completed' && filteredBusinesses.length > 0 && (
-            <div className="text-sm text-gray-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-              ✅ Search completed successfully
-            </div>
-          )}
-          
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rating">Sort by Rating</SelectItem>
-              <SelectItem value="distance">Sort by Distance</SelectItem>
-              <SelectItem value="name">Sort by Name</SelectItem>
-              <SelectItem value="newest">Sort by Newest</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-          >
-            <Building className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'map' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('map')}
-          >
-            <MapPin className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center justify-center sm:justify-end space-x-2">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="px-3 py-2"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="px-3 py-2"
+            >
+              <Building className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'map' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('map')}
+              className="px-3 py-2"
+            >
+              <MapPin className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Results */}
-      <Tabs value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="w-full">
-        <TabsContent value="list" className="space-y-4">
-          {filteredBusinesses.map((business) => (
-            <Card key={business.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">{business.name.charAt(0)}</span>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <Tabs value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="w-full">
+          <TabsContent value="list" className="space-y-4 sm:space-y-6">
+            {filteredBusinesses.map((business) => (
+              <Card key={business.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+                  <div className="flex-shrink-0 flex justify-center sm:justify-start">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden">
+                      <img 
+                        src={business.imageUrl}
+                        alt={business.name}
+                        className="w-full h-full object-cover"
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully for:', business.name, 'URL:', business.imageUrl);
+                        }}
+                        onError={(e) => {
+                          console.error('❌ Image failed to load for:', business.name, 'URL:', business.imageUrl);
+                          // Fallback to colored circle if image fails
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"><span class="text-white font-bold text-xl">${business.name.charAt(0)}</span></div>`;
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
+                      <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">{business.name}</h3>
                         <p className="text-sm text-gray-600 mb-2">{business.category}</p>
-                                                                             <div className="flex items-center space-x-4 mb-3">
-                              <div className="flex items-center">
-                                <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                                <span className="font-medium">{business.rating.toFixed(1)}</span>
-                                <span className="text-gray-500 ml-1">({business.total_reviews})</span>
-                              </div>
-                              <div className="flex items-center text-gray-500">
-                                <MapPin className="w-4 h-4 mr-1" />
-                                <span>{business.city}, {business.state}</span>
-                              </div>
-                              {business.distance !== undefined && userLocation && (
-                                <div className="flex items-center text-green-600 font-medium">
-                                  <Navigation className="w-4 h-4 mr-1" />
-                                  <span>{business.distance.toFixed(1)} km from {userLocation.address.includes('Current') ? 'you' : userLocation.address}</span>
-                                </div>
-                              )}
+                        
+                        {/* Rating and Location Info - Mobile Optimized */}
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-3">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                            <span className="font-medium">{business.rating.toFixed(1)}</span>
+                            <span className="text-gray-500 ml-1">({business.total_reviews})</span>
+                          </div>
+                          <div className="flex items-center text-gray-500">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            <span className="text-sm">{business.city}, {business.state}</span>
+                          </div>
+                          {business.distance !== undefined && userLocation && (
+                            <div className="flex items-center text-green-600 font-medium text-sm">
+                              <Navigation className="w-4 h-4 mr-1" />
+                              <span>{business.distance.toFixed(1)} km from {userLocation.address.includes('Current') ? 'you' : userLocation.address}</span>
                             </div>
+                          )}
+                        </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-center sm:justify-end space-x-2">
                         {getBusinessStatusBadges(business)}
                       </div>
                     </div>
                     
                     <p className="text-gray-700 mb-3 line-clamp-2">{business.description}</p>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                         {business.services.slice(0, 3).map((service, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {service}
@@ -1244,17 +1498,63 @@ const BusinessSearch: React.FC = () => {
                         )}
                       </div>
                       
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Heart className="w-4 h-4" />
+                      <div className="flex items-center justify-center sm:justify-end space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleFavoriteBusiness(business)}
+                          className={isBusinessFavorited(business.id) ? 'text-red-500 bg-red-50' : ''}
+                          title={isBusinessFavorited(business.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Heart className={`w-4 h-4 ${isBusinessFavorited(business.id) ? 'fill-current' : ''}`} />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Bookmark className="w-4 h-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleSaveBusiness(business)}
+                          className={isBusinessSaved(business.id) ? 'text-yellow-500 bg-yellow-50' : ''}
+                          title={isBusinessSaved(business.id) ? 'Remove from saved' : 'Save business'}
+                        >
+                          <Bookmark className={`w-4 h-4 ${isBusinessSaved(business.id) ? 'fill-current' : ''}`} />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            console.log('🔍 Share button clicked for:', business.name);
+                            alert(`Sharing: ${business.name}`);
+                            try {
+                              // Simple share - just copy to clipboard
+                              navigator.clipboard.writeText(`${business.name} - ${business.address}`);
+                              alert('Business info copied to clipboard!');
+                            } catch (error) {
+                              console.error('Share failed:', error);
+                              alert('Failed to copy to clipboard');
+                            }
+                          }}
+                          title="Share business"
+                        >
                           <Share2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm">
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            console.log('🔍 Get Directions button clicked for:', business.name);
+                            alert(`Getting directions to: ${business.name}`);
+                            try {
+                              // Create Google Maps directions URL
+                              const destination = `${business.location.lat},${business.location.lng}`;
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+                              
+                              console.log('🔍 Opening directions URL:', url);
+                              window.open(url, '_blank');
+                            } catch (error) {
+                              console.error('🔍 Error opening directions:', error);
+                              alert('Error opening directions');
+                            }
+                          }}
+                          title="Get directions on Google Maps"
+                        >
                           <Navigation className="w-4 h-4 mr-2" />
                           Get Directions
                         </Button>
@@ -1267,13 +1567,30 @@ const BusinessSearch: React.FC = () => {
           ))}
         </TabsContent>
 
-        <TabsContent value="grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TabsContent value="grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredBusinesses.map((business) => (
             <Card key={business.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-6">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-2xl">{business.name.charAt(0)}</span>
+                  <div className="w-20 h-20 rounded-lg overflow-hidden mx-auto mb-4">
+                                          <img 
+                        src={business.imageUrl}
+                        alt={business.name}
+                        className="w-full h-full object-cover"
+                        onLoad={() => {
+                          console.log('✅ Grid image loaded successfully for:', business.name, 'URL:', business.imageUrl);
+                        }}
+                        onError={(e) => {
+                          console.error('❌ Grid image failed to load for:', business.name, 'URL:', business.imageUrl);
+                          // Fallback to colored circle if image fails
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"><span class="text-white font-bold text-2xl">${business.name.charAt(0)}</span></div>`;
+                          }
+                        }}
+                      />
                   </div>
                   
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{business.name}</h3>
@@ -1292,11 +1609,37 @@ const BusinessSearch: React.FC = () => {
                   <p className="text-gray-700 text-sm mb-4 line-clamp-3">{business.description}</p>
                   
                   <div className="flex items-center justify-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        console.log('🔍 View button clicked for:', business.name);
+                        alert(`Viewing details for: ${business.name}`);
+                      }}
+                      title="View business details"
+                    >
                       <MapPin className="w-4 h-4 mr-1" />
                       View
                     </Button>
-                    <Button size="sm">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        console.log('🔍 Directions button clicked for:', business.name);
+                        alert(`Getting directions to: ${business.name}`);
+                        try {
+                          // Create Google Maps directions URL
+                          const destination = `${business.location.lat},${business.location.lng}`;
+                          const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+                          
+                          console.log('🔍 Opening directions URL:', url);
+                          window.open(url, '_blank');
+                        } catch (error) {
+                          console.error('🔍 Error opening directions:', error);
+                          alert('Error opening directions');
+                        }
+                      }}
+                      title="Get directions on Google Maps"
+                    >
                       <Navigation className="w-4 h-4 mr-1" />
                       Directions
                     </Button>
@@ -1307,12 +1650,12 @@ const BusinessSearch: React.FC = () => {
           ))}
         </TabsContent>
 
-        <TabsContent value="map" className="h-96">
+        <TabsContent value="map" className="h-64 sm:h-96 lg:h-[600px]">
           <EnhancedGoogleMap
             businesses={filteredBusinesses}
             onBusinessClick={handleBusinessClick}
             onMapClick={handleMapClick}
-            height="600px"
+            height="100%"
             showBusinesses={true}
             clustering={true}
             customControls={true}
@@ -1322,38 +1665,38 @@ const BusinessSearch: React.FC = () => {
 
               {/* No Results */}
         {filteredBusinesses.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
+          <Card className="text-center py-8 sm:py-12">
+            <CardContent className="px-4 sm:px-6">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No businesses found</h3>
-              <p className="text-gray-600 mb-4">
-                Try adjusting your search criteria or filters
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No local businesses found</h3>
+              <p className="text-gray-600 mb-4 text-sm sm:text-base">
+                We're searching Google Places API for live results. Try searching for businesses, restaurants, or services in your area.
               </p>
               
               {/* Search Suggestions */}
               <div className="mt-6 text-left max-w-2xl mx-auto">
-                <h4 className="font-medium text-gray-800 mb-3">Search Suggestions:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h4 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">Search Suggestions:</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="text-sm text-gray-600">
                     <p className="font-medium mb-2">Try these searches:</p>
                     <ul className="space-y-1">
-                      <li>• "keiken cafe" or "cafe"</li>
                       <li>• "restaurant" or "food"</li>
                       <li>• "hospital" or "clinic"</li>
                       <li>• "auto service" or "car repair"</li>
                       <li>• "beauty salon" or "spa"</li>
+                      <li>• "electronics store" or "mobile shop"</li>
                     </ul>
                   </div>
                   <div className="text-sm text-gray-600">
                     <p className="font-medium mb-2">Location tips:</p>
                     <ul className="space-y-1">
                       <li>• Enter "Betul, MP" as location</li>
-                      <li>• Use "Find Near Me" button</li>
+                      <li>• Use "Get My Location" button</li>
                       <li>• Try specific areas like "Housing Board Colony"</li>
                       <li>• Check distance filter (currently: {searchFilters.distance} km)</li>
-                      <li>• Try "Show All" to see all businesses</li>
+                      <li>• Live Google Places API search for real-time results</li>
                     </ul>
                   </div>
                 </div>
@@ -1364,23 +1707,11 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('🔍 Test button clicked: keiken cafe');
-                      setSearchFilters(prev => ({ ...prev, query: 'keiken cafe' }));
-                      searchNearbyBusinesses('keiken cafe');
-                    }}
-                    className="text-xs px-3 py-1"
-                  >
-                    Search "keiken cafe"
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
                       console.log('🔍 Test button clicked: restaurant');
                       setSearchFilters(prev => ({ ...prev, query: 'restaurant' }));
                       searchNearbyBusinesses('restaurant');
                     }}
-                    className="text-xs px-3 py-1"
+                    className="text-xs px-2 sm:px-3 py-1 w-full sm:w-auto"
                   >
                     Search "restaurant"
                   </Button>
@@ -1392,7 +1723,7 @@ const BusinessSearch: React.FC = () => {
                       setSearchFilters(prev => ({ ...prev, query: 'cafe' }));
                       searchNearbyBusinesses('cafe');
                     }}
-                    className="text-xs px-3 py-1"
+                    className="text-xs px-2 sm:px-3 py-1 w-full sm:w-auto"
                   >
                     Search "cafe"
                   </Button>
@@ -1400,13 +1731,13 @@ const BusinessSearch: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('🔍 Test button clicked: kapoor');
-                      setSearchFilters(prev => ({ ...prev, query: 'kapoor' }));
-                      searchNearbyBusinesses('kapoor');
+                      console.log('🔍 Test button clicked: electronics');
+                      setSearchFilters(prev => ({ ...prev, query: 'electronics store' }));
+                      searchNearbyBusinesses('electronics store');
                     }}
-                    className="text-xs px-3 py-1"
+                    className="text-xs px-2 sm:px-3 py-1 w-full sm:w-auto"
                   >
-                    Search "kapoor"
+                    Search "electronics"
                   </Button>
                   <Button
                     variant="outline"
@@ -1418,15 +1749,15 @@ const BusinessSearch: React.FC = () => {
                       console.log('🔍 userLocation:', userLocation);
                       console.log('🔍 searchFilters:', searchFilters);
                     }}
-                    className="text-xs px-3 py-1 bg-red-100 text-red-700"
+                    className="text-xs px-2 sm:px-3 py-1 bg-red-100 text-red-700 w-full sm:w-auto"
                   >
                     Debug State
                   </Button>
                 </div>
               </div>
               
-              <div className="mt-6 space-x-3">
-                <Button onClick={resetFilters} variant="outline">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:space-x-3">
+                <Button onClick={resetFilters} variant="outline" className="w-full sm:w-auto">
                   Reset Filters
                 </Button>
                 <Button 
@@ -1435,6 +1766,7 @@ const BusinessSearch: React.FC = () => {
                     setFilteredBusinesses(businesses);
                   }}
                   variant="default"
+                  className="w-full sm:w-auto"
                 >
                   Show All Businesses
                 </Button>
@@ -1442,6 +1774,110 @@ const BusinessSearch: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        
+        {/* User Preferences Section */}
+        {isAuthenticated && user && userPreferencesLoaded && (
+          <div className="mt-8 space-y-6">
+            {/* Saved Businesses */}
+            {savedBusinesses.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-yellow-500" />
+                    Saved Businesses ({savedBusinesses.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {savedBusinesses.map((saved) => (
+                      <Card key={saved.business_id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold text-gray-900 mb-2">{saved.business_name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{saved.business_category}</p>
+                          <p className="text-xs text-gray-500 mb-3">{saved.business_address}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-400">
+                              Saved: {new Date(saved.saved_at).toLocaleDateString()}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSaveBusiness({ id: saved.business_id } as Business)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Favorite Businesses */}
+            {favoriteBusinesses.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-red-500" />
+                    Favorite Businesses ({favoriteBusinesses.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {favoriteBusinesses.map((favorite) => (
+                      <Card key={favorite.business_id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold text-gray-900 mb-2">{favorite.business_name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{favorite.business_category}</p>
+                          <p className="text-xs text-gray-500 mb-3">{favorite.business_address}</p>
+                          {favorite.rating && (
+                            <div className="flex items-center gap-1 mb-2">
+                              <Star className="w-4 h-4 text-yellow-400" />
+                              <span className="text-sm text-gray-600">{favorite.rating}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-400">
+                              Favorited: {new Date(favorite.favorited_at).toLocaleDateString()}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleFavoriteBusiness({ id: favorite.business_id } as Business)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* No Preferences Message */}
+            {savedBusinesses.length === 0 && favoriteBusinesses.length === 0 && userPreferencesLoaded && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bookmark className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Saved or Favorite Businesses</h3>
+                  <p className="text-gray-600 mb-4">
+                    Start exploring businesses and save your favorites for quick access later.
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Use the ❤️ and 🔖 buttons on business cards to save and favorite businesses.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

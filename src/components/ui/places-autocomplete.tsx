@@ -164,6 +164,10 @@ const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
           ref={inputRef}
           type="text"
           value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            onChange?.(e.target.value);
+          }}
           placeholder={placeholder}
           disabled={disabled}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"

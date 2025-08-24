@@ -13,7 +13,8 @@ import {
   Building,
   Shield,
   ChevronDown,
-  Globe
+  Globe,
+  Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
@@ -87,7 +88,7 @@ const Header = () => {
       }
 
       const script = document.createElement('script');
-      const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       
       if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
         reject(new Error('Google Maps API key not configured'));
@@ -107,6 +108,7 @@ const Header = () => {
   // Search Google Places API
   const searchGooglePlaces = useCallback(async (query: string) => {
     try {
+      console.log('🔍 Header: Searching Google Places for:', query);
       await loadGoogleMapsScript();
 
       const map = new google.maps.Map(document.createElement('div'));
@@ -118,8 +120,12 @@ const Header = () => {
         radius: 50000 // 50km radius
       };
 
+      console.log('🔍 Header: Search request:', searchRequest);
+
       return new Promise<any[]>((resolve, reject) => {
         service.textSearch(searchRequest, (results, status) => {
+          console.log('🔍 Header: Google Places response:', { status, resultsCount: results?.length || 0 });
+          
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
             const businesses = results.slice(0, 5).map((place, index) => ({
               id: `google_${place.place_id || index}`,
@@ -132,20 +138,23 @@ const Header = () => {
                 lng: place.geometry?.location?.lng() || 77.5885
               }
             }));
+            console.log('🔍 Header: Processed businesses:', businesses);
             resolve(businesses);
           } else {
+            console.log('🔍 Header: Google Places search failed with status:', status);
             resolve([]);
           }
         });
       });
     } catch (error) {
-      console.error('Error searching Google Places:', error);
+      console.error('🔍 Header: Error searching Google Places:', error);
       return [];
     }
   }, [loadGoogleMapsScript]);
 
   // Handle search input change with auto-search
   const handleSearchInputChange = (value: string) => {
+    console.log('🔍 Header: Search input changed to:', value);
     setSearchQuery(value);
     
     // Clear previous timeout
@@ -162,6 +171,7 @@ const Header = () => {
     
     // Set new timeout for auto-search (500ms delay)
     const timeout = setTimeout(() => {
+      console.log('🔍 Header: Auto-search triggered for:', value);
       handleSearch(value);
     }, 500);
     
@@ -170,6 +180,8 @@ const Header = () => {
 
   // Handle search
   const handleSearch = async (query: string) => {
+    console.log('🔍 Header: handleSearch called with:', query);
+    
     if (!query.trim()) {
       setSearchResults([]);
       setShowSearchResults(false);
@@ -178,11 +190,13 @@ const Header = () => {
 
     setIsSearching(true);
     try {
+      console.log('🔍 Header: Calling searchGooglePlaces...');
       const results = await searchGooglePlaces(query);
+      console.log('🔍 Header: Search results received:', results);
       setSearchResults(results);
       setShowSearchResults(true);
     } catch (error) {
-      console.error('Search failed:', error);
+      console.error('🔍 Header: Search failed:', error);
       setSearchResults([]);
       setShowSearchResults(false);
     } finally {
@@ -254,40 +268,49 @@ const Header = () => {
               </div>
               
               {/* Search Results Dropdown */}
-              {showSearchResults && searchResults.length > 0 && (
+              {showSearchResults && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
-                  {searchResults.map((business) => (
-                    <div 
-                      key={business.id}
-                      className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                      onClick={() => handleBusinessClick(business)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                  {searchResults.length > 0 ? (
+                    <>
+                      {searchResults.map((business) => (
+                        <div 
+                          key={business.id}
+                          className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleBusinessClick(business)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
+                              <p className="text-xs text-gray-600 truncate">{business.category}</p>
+                              <p className="text-xs text-gray-500 truncate">{business.address}</p>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-3 h-3 text-yellow-500" />
+                              <span className="text-xs text-gray-600">{business.rating}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
-                          <p className="text-xs text-gray-600 truncate">{business.category}</p>
-                          <p className="text-xs text-gray-500 truncate">{business.address}</p>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-500" />
-                          <span className="text-xs text-gray-600">{business.rating}</span>
-                        </div>
+                      ))}
+                      <div className="p-3 bg-gray-50 border-t border-gray-200">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => navigate('/google-search')}
+                        >
+                          View All Results
+                        </Button>
                       </div>
+                    </>
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      <p className="text-sm">No results found</p>
+                      <p className="text-xs mt-1">Try a different search term</p>
                     </div>
-                  ))}
-                  <div className="p-3 bg-gray-50 border-t border-gray-200">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => navigate('/google-search')}
-                    >
-                      View All Results
-                    </Button>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -428,40 +451,49 @@ const Header = () => {
             </div>
             
             {/* Mobile Search Results */}
-            {showSearchResults && searchResults.length > 0 && (
+            {showSearchResults && (
               <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
-                {searchResults.map((business) => (
-                  <div 
-                    key={business.id}
-                    className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    onClick={() => handleBusinessClick(business)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                {searchResults.length > 0 ? (
+                  <>
+                    {searchResults.map((business) => (
+                      <div 
+                        key={business.id}
+                        className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleBusinessClick(business)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">{business.name.charAt(0)}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
+                            <p className="text-xs text-gray-600 truncate">{business.category}</p>
+                            <p className="text-xs text-gray-500 truncate">{business.address}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-3 h-3 text-yellow-500" />
+                            <span className="text-xs text-gray-600">{business.rating}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-gray-900 truncate">{business.name}</h4>
-                        <p className="text-xs text-gray-600 truncate">{business.category}</p>
-                        <p className="text-xs text-gray-500 truncate">{business.address}</p>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-500" />
-                        <span className="text-xs text-gray-600">{business.rating}</span>
-                      </div>
+                    ))}
+                    <div className="p-3 bg-gray-50 border-t border-gray-200">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => navigate('/google-search')}
+                      >
+                        View All Results
+                      </Button>
                     </div>
+                  </>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    <p className="text-sm">No results found</p>
+                    <p className="text-xs mt-1">Try a different search term</p>
                   </div>
-                ))}
-                <div className="p-3 bg-gray-50 border-t border-gray-200">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => navigate('/google-search')}
-                  >
-                    View All Results
-                  </Button>
-                </div>
+                )}
               </div>
             )}
           </div>
