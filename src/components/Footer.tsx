@@ -12,12 +12,15 @@ import {
   ArrowRight,
   Star,
   Users,
-  Building
+  Building,
+  Globe,
+  Shield,
+  Award
 } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <footer className="bg-gray-900 text-white">
       {/* Newsletter Section */}
       <div className="border-b border-gray-700">
         <div className="container mx-auto px-4 py-12">
@@ -52,7 +55,7 @@ const Footer = () => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gradient">BetulBuzz</h2>
-                <p className="text-sm text-gray-400">Find Local Businesses</p>
+                <p className="text-sm text-gray-400">Local Business Directory</p>
               </div>
             </div>
             
@@ -83,11 +86,18 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-6">Quick Links</h3>
             <ul className="space-y-3">
-              {['Home', 'Browse Categories', 'Featured Businesses', 'Add Business', 'Pricing Plans', 'About Us'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center">
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 hover:opacity-100 transition-opacity" />
-                    {link}
+              {[
+                { name: 'Home', icon: ArrowRight },
+                { name: 'Browse Categories', icon: ArrowRight },
+                { name: 'Featured Businesses', icon: ArrowRight },
+                { name: 'Add Business', icon: ArrowRight },
+                { name: 'Pricing Plans', icon: ArrowRight },
+                { name: 'About Us', icon: ArrowRight }
+              ].map((link) => (
+                <li key={link.name}>
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center group">
+                    <link.icon className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {link.name}
                   </a>
                 </li>
               ))}
@@ -98,11 +108,18 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-6">Popular Categories</h3>
             <ul className="space-y-3">
-              {['Restaurants', 'Shopping', 'Healthcare', 'Education', 'Automotive', 'Beauty & Wellness'].map((category) => (
-                <li key={category}>
-                  <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center">
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 hover:opacity-100 transition-opacity" />
-                    {category}
+              {[
+                { name: 'Restaurants', icon: '🍽️' },
+                { name: 'Shopping', icon: '🛍️' },
+                { name: 'Healthcare', icon: '🏥' },
+                { name: 'Education', icon: '🎓' },
+                { name: 'Automotive', icon: '🚗' },
+                { name: 'Beauty & Wellness', icon: '💄' }
+              ].map((category) => (
+                <li key={category.name}>
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center group">
+                    <span className="mr-2">{category.icon}</span>
+                    {category.name}
                   </a>
                 </li>
               ))}
@@ -142,15 +159,42 @@ const Footer = () => {
             <div className="mt-6">
               <h4 className="text-sm font-semibold mb-4">Follow Us</h4>
               <div className="flex space-x-3">
-                {[Facebook, Twitter, Instagram, Linkedin].map((Icon, index) => (
+                {[
+                  { icon: Facebook, name: 'Facebook' },
+                  { icon: Twitter, name: 'Twitter' },
+                  { icon: Instagram, name: 'Instagram' },
+                  { icon: Linkedin, name: 'LinkedIn' }
+                ].map((social) => (
                   <a 
-                    key={index}
+                    key={social.name}
                     href="#" 
                     className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary hover:scale-110 transition-all duration-300"
+                    title={social.name}
                   >
-                    <Icon className="w-5 h-5" />
+                    <social.icon className="w-5 h-5" />
                   </a>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust & Security Section */}
+        <div className="border-t border-gray-700 pt-8 mb-8">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-4">Why Trust BetulBuzz?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center justify-center space-x-3">
+                <Shield className="w-6 h-6 text-green-400" />
+                <span className="text-gray-300">Verified Businesses</span>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <Award className="w-6 h-6 text-yellow-400" />
+                <span className="text-gray-300">Quality Assured</span>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <Globe className="w-6 h-6 text-blue-400" />
+                <span className="text-gray-300">Local Expertise</span>
               </div>
             </div>
           </div>
