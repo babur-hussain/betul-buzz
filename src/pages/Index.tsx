@@ -1,23 +1,26 @@
-import Header from "@/components/Header";
+import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
-import BusinessSearch from "@/components/business/BusinessSearch";
 import CategoriesSection from "@/components/CategoriesSection";
 import FeaturedBusinesses from "@/components/FeaturedBusinesses";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ScrollToTop from "@/components/ScrollToTop";
 
 const Index = () => {
+  useEffect(() => {
+    document.title = "BetulDial - Local Business Directory | Find Best Services in Betul";
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Header />
-      <HeroSection />
-      <BusinessSearch />
-      <CategoriesSection />
-      <FeaturedBusinesses />
-      <SubscriptionPlans />
+      <main>
+        <HeroSection />
+        <CategoriesSection />
+        <FeaturedBusinesses />
+        <SubscriptionPlans />
+      </main>
       <Footer />
-      <ScrollToTop />
     </div>
   );
 };

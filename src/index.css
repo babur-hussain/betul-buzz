@@ -2,88 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Betul Buzz Design System - Modern Business Listing Platform */
+/* JustDial Inspired Design System - Professional Business Directory */
 
 @layer base {
   :root {
-    /* Core Brand Colors - Sophisticated Blue to Violet */
+    /* Core Brand Colors - JustDial Blue Theme */
     --background: 0 0% 100%;
-    --foreground: 230 15% 15%;
+    --foreground: 214 32% 23%;
 
     /* Card & Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 230 15% 15%;
-    --card-hover: 240 9% 98%;
+    --card-foreground: 214 32% 23%;
+    --card-hover: 210 40% 98%;
 
     /* Popover Colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 230 15% 15%;
+    --popover-foreground: 214 32% 23%;
 
-    /* Primary Brand Colors - Electric Blue */
-    --primary: 218 100% 66%;
+    /* Primary Brand Colors - JustDial Blue */
+    --primary: 210 93% 49%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 218 100% 60%;
-    --primary-light: 218 100% 85%;
-    --primary-dark: 218 100% 45%;
+    --primary-hover: 210 93% 45%;
+    --primary-light: 210 93% 85%;
+    --primary-dark: 210 93% 40%;
 
-    /* Secondary Brand Colors - Vibrant Purple */
-    --secondary: 261 83% 58%;
+    /* Secondary Brand Colors - Orange Accent */
+    --secondary: 25 95% 50%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-hover: 261 83% 52%;
-    --secondary-light: 261 83% 85%;
+    --secondary-hover: 25 95% 45%;
+    --secondary-light: 25 95% 85%;
 
-    /* Accent Colors - Electric Cyan */
-    --accent: 190 100% 50%;
+    /* Accent Colors - Success Green */
+    --accent: 142 69% 50%;
     --accent-foreground: 0 0% 100%;
-    --accent-light: 190 100% 85%;
-    --accent-hover: 190 100% 45%;
+    --accent-light: 142 69% 85%;
+    --accent-hover: 142 69% 45%;
 
     /* Muted Colors */
-    --muted: 240 9% 98%;
-    --muted-foreground: 240 5% 41%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215 16% 47%;
 
     /* Destructive Colors */
-    --destructive: 350 89% 60%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Success Colors */
-    --success: 142 69% 58%;
+    --success: 142 69% 50%;
     --success-foreground: 0 0% 100%;
 
     /* Warning Colors */
-    --warning: 38 92% 50%;
+    --warning: 45 93% 47%;
     --warning-foreground: 0 0% 100%;
 
     /* Border & Input Colors */
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 218 100% 66%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 210 93% 49%;
 
-    /* Featured & Premium Colors */
-    --featured: 32 95% 44%;
-    --featured-foreground: 0 0% 100%;
-    --premium: 280 100% 70%;
-    --premium-foreground: 0 0% 100%;
+    /* Category & Service Colors */
+    --category-bg: 210 40% 98%;
+    --category-hover: 210 93% 95%;
+    --service-card: 0 0% 100%;
+    --promotion-bg: 0 0% 98%;
 
-    /* Sophisticated Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(218 100% 66%) 0%, hsl(261 83% 58%) 50%, hsl(190 100% 50%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(218 100% 66%) 0%, hsl(280 100% 70%) 25%, hsl(261 83% 58%) 50%, hsl(190 100% 50%) 75%, hsl(32 95% 44%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(240 9% 98%) 100%);
-    --gradient-feature: linear-gradient(135deg, hsl(190 100% 50%) 0%, hsl(218 100% 66%) 100%);
-    --gradient-premium: linear-gradient(135deg, hsl(280 100% 70%) 0%, hsl(261 83% 58%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 69% 58%) 0%, hsl(190 100% 50%) 100%);
-    --gradient-surface: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(218 100% 66% / 0.03) 100%);
+    /* Simple Clean Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 93% 49%) 0%, hsl(210 93% 45%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(25 95% 50%) 0%, hsl(25 95% 45%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 40% 99%) 100%);
+    --gradient-category: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(210 93% 98%) 100%);
 
-    /* Advanced Shadows */
+    /* Clean Modern Shadows */
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
-    --shadow-glow: 0 0 20px hsl(218 100% 66% / 0.4);
-    --shadow-glow-lg: 0 0 40px hsl(218 100% 66% / 0.6);
-    --shadow-colored: 0 10px 25px -5px hsl(218 100% 66% / 0.2);
+    --shadow-card: 0 2px 8px 0 hsl(0 0% 0% / 0.1);
+    --shadow-banner: 0 4px 12px 0 hsl(0 0% 0% / 0.15);
 
     /* Typography */
     --font-size-xs: 0.75rem;
@@ -190,53 +184,35 @@
 }
 
 @layer components {
-  /* Enhanced Hero Button with Gradient Border */
-  .btn-hero {
-    @apply relative bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--secondary))] to-[hsl(var(--accent))] text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 overflow-hidden;
+  /* JustDial Style Components */
+  
+  /* Category Card - JustDial Style */
+  .jd-category-card {
+    @apply bg-white border border-[hsl(var(--border))] rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer;
   }
   
-  .btn-hero::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--secondary))] to-[hsl(var(--accent))] opacity-0 transition-opacity duration-500;
-  }
-  
-  .btn-hero:hover::before {
-    @apply opacity-20;
+  .jd-category-card:hover {
+    @apply bg-[hsl(var(--category-hover))];
   }
 
-  /* Glass Card Effect */
-  .card-glass {
-    @apply backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2;
+  /* Service Banner Card */
+  .jd-service-banner {
+    @apply bg-white rounded-lg shadow-banner p-6 border border-[hsl(var(--border))] hover:shadow-lg transition-shadow duration-200;
   }
 
-  /* Enhanced Featured Card with Animated Border */
-  .card-featured {
-    @apply relative bg-gradient-to-br from-white via-[hsl(var(--muted))] to-white border-2 border-transparent rounded-3xl p-8 shadow-2xl hover:shadow-colored transition-all duration-500 hover:-translate-y-3 overflow-hidden;
-  }
-  
-  .card-featured::before {
-    content: '';
-    @apply absolute inset-0 rounded-3xl p-[2px] bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--accent))] to-[hsl(var(--secondary))] opacity-0 transition-opacity duration-500;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: xor;
-  }
-  
-  .card-featured:hover::before {
-    @apply opacity-100;
+  /* Search Box Style */
+  .jd-search-box {
+    @apply bg-white border border-[hsl(var(--border))] rounded-lg shadow-sm focus-within:shadow-md focus-within:border-[hsl(var(--primary))] transition-all duration-200;
   }
 
-  /* Enhanced Category Card with Neon Glow */
-  .card-category {
-    @apply relative bg-gradient-surface border border-[hsl(var(--border))] rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-110 cursor-pointer overflow-hidden;
+  /* Primary Button */
+  .jd-btn-primary {
+    @apply bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary-hover))] text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200;
   }
-  
-  .card-category::after {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-[hsl(var(--primary)/0.1)] to-[hsl(var(--accent)/0.1)] opacity-0 transition-opacity duration-500 rounded-2xl;
-  }
-  
-  .card-category:hover::after {
-    @apply opacity-100;
+
+  /* Secondary Button */
+  .jd-btn-secondary {
+    @apply bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary-hover))] text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200;
   }
 
   /* Premium Business Card with Holographic Effect */
