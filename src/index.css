@@ -197,7 +197,7 @@
 
   /* Service Banner Card */
   .jd-service-banner {
-    @apply bg-white rounded-lg shadow-banner p-6 border border-[hsl(var(--border))] hover:shadow-lg transition-shadow duration-200;
+    @apply bg-white rounded-lg shadow-md p-6 border border-[hsl(var(--border))] hover:shadow-lg transition-shadow duration-200;
   }
 
   /* Search Box Style */
