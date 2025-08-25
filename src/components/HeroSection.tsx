@@ -141,24 +141,41 @@ const HeroSection = () => {
     <section className="bg-white">
       {/* Promotional Banner/Carousel with 1 Big + 3 Small Layout */}
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Big Carousel Image (Left - 2/3 width) */}
           <div className="lg:col-span-2">
-            <div className={`relative bg-gradient-to-r ${bannerSlides[currentSlide].bgColor} rounded-2xl overflow-hidden h-80`}>
+            <div className="relative bg-gradient-to-b from-blue-400 via-blue-500 to-blue-300 rounded-2xl overflow-hidden h-80">
               <div className="flex items-center justify-between p-8 h-full">
-                <div className="flex-1 text-white">
-                  <h2 className="text-3xl font-bold mb-4">{bannerSlides[currentSlide].title}</h2>
-                  <Button className="bg-white text-gray-800 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold">
-                    {bannerSlides[currentSlide].buttonText}
+                <div className="flex-1 text-blue-900">
+                  <h2 className="text-3xl font-bold mb-2">
+                    <span className="text-blue-900">Time to fly at</span>
+                    <br />
+                    <span className="text-blue-900 text-4xl">Lowest Airfares</span>
+                  </h2>
+                  <Button className="bg-blue-900 text-white hover:bg-blue-800 px-6 py-3 rounded-lg font-semibold mb-4">
+                    Book Now
                   </Button>
-                  <div className="mt-4 text-sm opacity-90">{bannerSlides[currentSlide].subtitle}</div>
+                  <div className="flex items-center text-blue-900 text-sm">
+                    <span className="mr-2">Powered by</span>
+                    <span className="font-semibold">EaseMyTrip.com</span>
+                  </div>
                 </div>
-                <div className="hidden md:block">
-                  <img 
-                    src={bannerSlides[currentSlide].image}
-                    alt="Promotional"
-                    className="w-64 h-48 object-cover rounded-lg"
-                  />
+                <div className="hidden md:block relative">
+                  {/* Airplane */}
+                  <div className="absolute top-4 right-20 z-10">
+                    <div className="text-white text-4xl transform rotate-45">✈️</div>
+                  </div>
+                  {/* Suitcase with window */}
+                  <div className="relative">
+                    <div className="w-48 h-32 bg-yellow-400 rounded-lg border-4 border-yellow-500 relative">
+                      {/* Suitcase handle */}
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-3 bg-yellow-500 rounded-full"></div>
+                      {/* Window with Eiffel Tower */}
+                      <div className="absolute top-4 right-4 w-16 h-16 bg-blue-200 rounded-full border-2 border-white flex items-center justify-center">
+                        <div className="text-xs text-blue-800">🗼</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -193,14 +210,11 @@ const HeroSection = () => {
           {/* 3 Small Promotional Posters (Right - 1/3 width) */}
           <div className="lg:col-span-1 space-y-4">
             {smallPosters.map((poster, index) => (
-              <div key={index} className={`${poster.bgColor} rounded-xl overflow-hidden h-24`}>
+              <div key={index} className={`${poster.bgColor} rounded-xl overflow-hidden h-24 relative`}>
                 <div className="flex items-center justify-between p-4 h-full">
                   <div className="flex-1 text-white">
                     <div className="text-xs font-medium opacity-90 mb-1">{poster.subtitle}</div>
                     <h3 className="text-sm font-bold mb-2">{poster.title}</h3>
-                    <Button className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded">
-                      {poster.buttonText}
-                    </Button>
                   </div>
                   <div className="hidden sm:block">
                     <img 
@@ -209,9 +223,29 @@ const HeroSection = () => {
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                   </div>
+                  {/* Right chevron */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Far Right Vertical Strips */}
+          <div className="lg:col-span-1 flex flex-col space-y-4">
+            {/* Advertise Strip */}
+            <div className="bg-orange-500 rounded-lg h-24 flex items-center justify-center">
+              <div className="text-white font-bold text-sm writing-mode-vertical transform -rotate-90">
+                Advertise
+              </div>
+            </div>
+            {/* Free Listing Strip */}
+            <div className="bg-blue-600 rounded-lg h-24 flex items-center justify-center">
+              <div className="text-white font-bold text-sm writing-mode-vertical transform -rotate-90">
+                Free Listing
+              </div>
+            </div>
           </div>
         </div>
       </div>
