@@ -272,11 +272,11 @@ const HeroSection = () => {
           </div>
 
           {/* Floating vertical bars on the far right */}
-          <div className="hidden lg:flex flex-col gap-3 absolute -right-2 top-1/2 -translate-y-1/2">
-            <div className="bg-orange-500 text-white font-semibold rounded-lg px-3 py-2 rotate-90 origin-center shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg">
+          <div className="hidden lg:block">
+            <div className="absolute right-[-10px] top-[32%] bg-orange-500 text-white font-semibold rounded-md px-3 py-2 rotate-90 origin-center shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg">
               Advertise
             </div>
-            <div className="bg-blue-600 text-white font-semibold rounded-lg px-3 py-2 rotate-90 origin-center shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg">
+            <div className="absolute right-[-10px] top-[66%] bg-blue-600 text-white font-semibold rounded-md px-3 py-2 rotate-90 origin-center shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg">
               Free Listing
             </div>
           </div>
