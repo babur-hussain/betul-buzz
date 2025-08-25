@@ -4,7 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ChevronLeft,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  MapPin,
+  Search,
+  Mic,
+  Download
 } from "lucide-react";
 
 const HeroSection = () => {
@@ -12,50 +16,10 @@ const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const bannerSlides = [
     {
-      title: "Time to fly at Lowest Airfares",
-      subtitle: "Powered By EaseMyTrip",
+      title: "Time to fly at",
+      subtitle: "Lowest Airfares",
       buttonText: "Book Now",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&h=400&fit=crop",
-      bgColor: "from-blue-500 to-blue-600"
-    },
-    {
-      title: "Get Best Deals on Electronics",
-      subtitle: "Powered By Amazon",
-      buttonText: "Shop Now",
-      image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=400&fit=crop",
-      bgColor: "from-purple-500 to-purple-600"
-    },
-    {
-      title: "Book Your Dream Home",
-      subtitle: "Powered By MagicBricks",
-      buttonText: "Explore",
-      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop",
-      bgColor: "from-green-500 to-green-600"
-    }
-  ];
-
-  // Small promotional posters data
-  const smallPosters = [
-    {
-      title: "Quick Quotes",
-      subtitle: "B2B",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=150&fit=crop",
-      bgColor: "bg-blue-500",
-      buttonText: "Get Quote"
-    },
-    {
-      title: "Get Nearest Vendor",
-      subtitle: "REPAIRS & SERVICES",
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=200&h=150&fit=crop",
-      bgColor: "bg-blue-600",
-      buttonText: "Find Vendor"
-    },
-    {
-      title: "Finest Agents",
-      subtitle: "REAL ESTATE",
-      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200&h=150&fit=crop",
-      bgColor: "bg-purple-600",
-      buttonText: "Connect"
+      poweredBy: "Powered by EaseMyTrip.com"
     }
   ];
 
@@ -139,111 +103,182 @@ const HeroSection = () => {
 
   return (
     <section className="bg-white">
+      {/* Main Search Section */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Search across '4.7 Crore+' Businesses
+          </h1>
+          
+          {/* Search Bar */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-full shadow-lg border border-gray-200 flex items-center p-2">
+              {/* Location Input */}
+              <div className="flex items-center px-4 py-3 border-r border-gray-200">
+                <MapPin className="w-5 h-5 text-gray-400 mr-2" />
+                <span className="text-gray-700 font-medium">Mumbai</span>
+                <ChevronRight className="w-4 h-4 text-gray-400 ml-2" />
+              </div>
+              
+              {/* Search Input */}
+              <div className="flex-1 flex items-center px-4 py-3">
+                <Search className="w-5 h-5 text-gray-400 mr-3" />
+                <input
+                  type="text"
+                  placeholder="Search for Spa & Salons"
+                  className="flex-1 text-gray-700 placeholder-gray-500 outline-none"
+                />
+              </div>
+              
+              {/* Right Side Icons */}
+              <div className="flex items-center space-x-3 pr-4">
+                <Mic className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <button className="bg-orange-500 hover:bg-orange-600 p-3 rounded-lg transition-colors">
+                  <Search className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Promotional Banner/Carousel with 1 Big + 3 Small Layout */}
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Big Carousel Image (Left - 2/3 width) */}
-          <div className="lg:col-span-2">
-            <div className="relative bg-gradient-to-b from-blue-400 via-blue-500 to-blue-300 rounded-2xl overflow-hidden h-80">
-              <div className="flex items-center justify-between p-8 h-full">
-                <div className="flex-1 text-blue-900">
-                  <h2 className="text-3xl font-bold mb-2">
-                    <span className="text-blue-900">Time to fly at</span>
-                    <br />
-                    <span className="text-blue-900 text-4xl">Lowest Airfares</span>
-                  </h2>
-                  <Button className="bg-blue-900 text-white hover:bg-blue-800 px-6 py-3 rounded-lg font-semibold mb-4">
-                    Book Now
-                  </Button>
-                  <div className="flex items-center text-blue-900 text-sm">
-                    <span className="mr-2">Powered by</span>
-                    <span className="font-semibold">EaseMyTrip.com</span>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Big Carousel Image (Left - 2/3 width) */}
+            <div className="lg:col-span-2">
+              <div className="relative bg-gradient-to-b from-blue-300 via-blue-400 to-blue-300 rounded-xl overflow-hidden h-80">
+                <div className="flex items-center justify-between p-8 h-full">
+                  <div className="flex-1 text-blue-900">
+                    <h2 className="text-3xl font-bold mb-2 text-blue-900">
+                      {bannerSlides[currentSlide].title}
+                    </h2>
+                    <h3 className="text-4xl font-bold mb-4 text-white">
+                      {bannerSlides[currentSlide].subtitle}
+                    </h3>
+                    <Button className="bg-blue-900 text-white hover:bg-blue-800 px-6 py-3 rounded-lg font-semibold mb-4">
+                      {bannerSlides[currentSlide].buttonText}
+                    </Button>
+                    <div className="text-white text-sm">
+                      {bannerSlides[currentSlide].poweredBy}
+                    </div>
                   </div>
-                </div>
-                <div className="hidden md:block relative">
-                  {/* Airplane */}
-                  <div className="absolute top-4 right-20 z-10">
-                    <div className="text-white text-4xl transform rotate-45">✈️</div>
-                  </div>
-                  {/* Suitcase with window */}
-                  <div className="relative">
-                    <div className="w-48 h-32 bg-yellow-400 rounded-lg border-4 border-yellow-500 relative">
-                      {/* Suitcase handle */}
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-3 bg-yellow-500 rounded-full"></div>
-                      {/* Window with Eiffel Tower */}
-                      <div className="absolute top-4 right-4 w-16 h-16 bg-blue-200 rounded-full border-2 border-white flex items-center justify-center">
-                        <div className="text-xs text-blue-800">🗼</div>
+                  <div className="hidden md:block relative">
+                    {/* Airplane */}
+                    <div className="absolute top-4 right-20 z-10">
+                      <div className="text-white text-4xl transform rotate-45">✈️</div>
+                    </div>
+                    {/* Suitcase with window */}
+                    <div className="relative">
+                      <div className="w-48 h-32 bg-yellow-400 rounded-lg border-4 border-yellow-500 relative">
+                        {/* Suitcase handle */}
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-3 bg-yellow-500 rounded-full"></div>
+                        {/* Window with Eiffel Tower */}
+                        <div className="absolute top-4 right-4 w-16 h-16 bg-blue-200 rounded-full border-2 border-white flex items-center justify-center">
+                          <div className="text-xs text-blue-800">🗼</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Navigation Arrows */}
-              <button 
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              
-              {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                {bannerSlides.map((_, index) => (
-                  <div 
-                    key={index} 
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentSlide ? 'bg-white' : 'bg-white/50'
-                    }`}
-                  ></div>
-                ))}
+                
+                {/* Navigation Arrows */}
+                <button 
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                
+                {/* Dots */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-white"></div>
+                  <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                  <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* 3 Small Promotional Posters (Right - 1/3 width) */}
-          <div className="lg:col-span-1 space-y-4">
-            {smallPosters.map((poster, index) => (
-              <div key={index} className={`${poster.bgColor} rounded-xl overflow-hidden h-24 relative`}>
+            {/* 3 Small Promotional Posters (Right - 1/3 width) */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="bg-blue-500 rounded-xl overflow-hidden h-24 relative">
                 <div className="flex items-center justify-between p-4 h-full">
                   <div className="flex-1 text-white">
-                    <div className="text-xs font-medium opacity-90 mb-1">{poster.subtitle}</div>
-                    <h3 className="text-sm font-bold mb-2">{poster.title}</h3>
+                    <div className="text-xs font-medium opacity-90 mb-1">B2B</div>
+                    <h3 className="text-sm font-bold">Quick Quotes</h3>
                   </div>
                   <div className="hidden sm:block">
                     <img 
-                      src={poster.image}
-                      alt={poster.title}
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face"
+                      alt="B2B"
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                   </div>
-                  {/* Right chevron */}
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
                     <ChevronRight className="w-5 h-5" />
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Far Right Vertical Strips */}
-          <div className="lg:col-span-1 flex flex-col space-y-4">
-            {/* Advertise Strip */}
-            <div className="bg-orange-500 rounded-lg h-24 flex items-center justify-center">
-              <div className="text-white font-bold text-sm writing-mode-vertical transform -rotate-90">
-                Advertise
+              <div className="bg-blue-600 rounded-xl overflow-hidden h-24 relative">
+                <div className="flex items-center justify-between p-4 h-full">
+                  <div className="flex-1 text-white">
+                    <div className="text-xs font-medium opacity-90 mb-1">REPAIRS & SERVICES</div>
+                    <h3 className="text-sm font-bold">Get Nearest Vendor</h3>
+                  </div>
+                  <div className="hidden sm:block">
+                    <img 
+                      src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=64&h=64&fit=crop&crop=face"
+                      alt="Repairs"
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-purple-600 rounded-xl overflow-hidden h-24 relative">
+                <div className="flex items-center justify-between p-4 h-full">
+                  <div className="flex-1 text-white">
+                    <div className="text-xs font-medium opacity-90 mb-1">REAL ESTATE</div>
+                    <h3 className="text-sm font-bold">Finest Agents</h3>
+                  </div>
+                  <div className="hidden sm:block">
+                    <img 
+                      src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=64&h=64&fit=crop"
+                      alt="Real Estate"
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </div>
               </div>
             </div>
-            {/* Free Listing Strip */}
-            <div className="bg-blue-600 rounded-lg h-24 flex items-center justify-center">
-              <div className="text-white font-bold text-sm writing-mode-vertical transform -rotate-90">
-                Free Listing
+
+            {/* Far Right Vertical Strips */}
+            <div className="lg:col-span-1 flex flex-col space-y-4">
+              {/* Advertise Strip */}
+              <div className="bg-orange-500 rounded-lg h-24 flex items-center justify-center">
+                <div className="text-white font-bold text-sm transform -rotate-90">
+                  Advertise
+                </div>
+              </div>
+              {/* Free Listing Strip */}
+              <div className="bg-blue-600 rounded-lg h-24 flex items-center justify-center">
+                <div className="text-white font-bold text-sm transform -rotate-90">
+                  Free Listing
+                </div>
               </div>
             </div>
           </div>
