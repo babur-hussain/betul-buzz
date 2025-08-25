@@ -8,6 +8,65 @@ import {
 } from "lucide-react";
 
 const HeroSection = () => {
+  // Promotional banner data
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const bannerSlides = [
+    {
+      title: "Time to fly at Lowest Airfares",
+      subtitle: "Powered By EaseMyTrip",
+      buttonText: "Book Now",
+      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&h=400&fit=crop",
+      bgColor: "from-blue-500 to-blue-600"
+    },
+    {
+      title: "Get Best Deals on Electronics",
+      subtitle: "Powered By Amazon",
+      buttonText: "Shop Now",
+      image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=400&fit=crop",
+      bgColor: "from-purple-500 to-purple-600"
+    },
+    {
+      title: "Book Your Dream Home",
+      subtitle: "Powered By MagicBricks",
+      buttonText: "Explore",
+      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop",
+      bgColor: "from-green-500 to-green-600"
+    }
+  ];
+
+  // Small promotional posters data
+  const smallPosters = [
+    {
+      title: "Quick Quotes",
+      subtitle: "B2B",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=150&fit=crop",
+      bgColor: "bg-blue-500",
+      buttonText: "Get Quote"
+    },
+    {
+      title: "Get Nearest Vendor",
+      subtitle: "REPAIRS & SERVICES",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=200&h=150&fit=crop",
+      bgColor: "bg-blue-600",
+      buttonText: "Find Vendor"
+    },
+    {
+      title: "Finest Agents",
+      subtitle: "REAL ESTATE",
+      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200&h=150&fit=crop",
+      bgColor: "bg-purple-600",
+      buttonText: "Connect"
+    }
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+  };
+
   // Top Category data (2 rows of 8 icons each)
   const topCategories = [
     { name: 'Restaurants', icon: '🍽️', color: 'bg-orange-100 text-orange-600' },
@@ -80,41 +139,79 @@ const HeroSection = () => {
 
   return (
     <section className="bg-white">
-      {/* Promotional Banner/Carousel */}
+      {/* Promotional Banner/Carousel with 1 Big + 3 Small Layout */}
       <div className="container mx-auto px-4 py-6">
-        <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between p-8">
-            <div className="flex-1 text-white">
-              <h2 className="text-3xl font-bold mb-4">Time to fly at Lowest Airfares</h2>
-              <Button className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold">
-                Book Now
-              </Button>
-              <div className="mt-4 text-sm opacity-90">Powered By EaseMyTrip</div>
-            </div>
-            <div className="hidden md:block">
-              <img 
-                src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop"
-                alt="Travel"
-                className="w-64 h-48 object-cover rounded-lg"
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Big Carousel Image (Left - 2/3 width) */}
+          <div className="lg:col-span-2">
+            <div className={`relative bg-gradient-to-r ${bannerSlides[currentSlide].bgColor} rounded-2xl overflow-hidden h-80`}>
+              <div className="flex items-center justify-between p-8 h-full">
+                <div className="flex-1 text-white">
+                  <h2 className="text-3xl font-bold mb-4">{bannerSlides[currentSlide].title}</h2>
+                  <Button className="bg-white text-gray-800 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold">
+                    {bannerSlides[currentSlide].buttonText}
+                  </Button>
+                  <div className="mt-4 text-sm opacity-90">{bannerSlides[currentSlide].subtitle}</div>
+                </div>
+                <div className="hidden md:block">
+                  <img 
+                    src={bannerSlides[currentSlide].image}
+                    alt="Promotional"
+                    className="w-64 h-48 object-cover rounded-lg"
+                  />
+                </div>
+              </div>
+              
+              {/* Navigation Arrows */}
+              <button 
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              
+              {/* Dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                {bannerSlides.map((_, index) => (
+                  <div 
+                    key={index} 
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentSlide ? 'bg-white' : 'bg-white/50'
+                    }`}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
-          
-          {/* Navigation Arrows */}
-          <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          
-          {/* Dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-            <div className="w-2 h-2 rounded-full bg-white"></div>
-            <div className="w-2 h-2 rounded-full bg-white/50"></div>
-            <div className="w-2 h-2 rounded-full bg-white/50"></div>
-            <div className="w-2 h-2 rounded-full bg-white/50"></div>
-            <div className="w-2 h-2 rounded-full bg-white/50"></div>
+
+          {/* 3 Small Promotional Posters (Right - 1/3 width) */}
+          <div className="lg:col-span-1 space-y-4">
+            {smallPosters.map((poster, index) => (
+              <div key={index} className={`${poster.bgColor} rounded-xl overflow-hidden h-24`}>
+                <div className="flex items-center justify-between p-4 h-full">
+                  <div className="flex-1 text-white">
+                    <div className="text-xs font-medium opacity-90 mb-1">{poster.subtitle}</div>
+                    <h3 className="text-sm font-bold mb-2">{poster.title}</h3>
+                    <Button className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded">
+                      {poster.buttonText}
+                    </Button>
+                  </div>
+                  <div className="hidden sm:block">
+                    <img 
+                      src={poster.image}
+                      alt={poster.title}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
