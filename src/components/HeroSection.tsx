@@ -128,8 +128,8 @@ const HeroSection = () => {
                   placeholder="Search for Spa & Salons"
                   className="flex-1 text-gray-700 placeholder-gray-500 outline-none"
                 />
-              </div>
-              
+      </div>
+
               {/* Right Side Icons */}
               <div className="flex items-center space-x-3 pr-4">
                 <Mic className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
@@ -142,13 +142,13 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Promotional Banner/Carousel with 1 Big + 4 Small Layout */}
+      {/* Promotional Banner/Carousel - JD exact: 1 big + 4 tall cards */}
       <div className="container mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
-            {/* Big Carousel Image (40% width - 4 columns) */}
+        <div className="relative">
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-stretch">
+            {/* Big Carousel Image (40%) */}
             <div className="lg:col-span-4">
-              <div className="relative bg-gradient-to-b from-blue-300 via-blue-400 to-blue-300 rounded-xl overflow-hidden h-80">
+              <div className="relative bg-gradient-to-b from-blue-300 via-blue-400 to-blue-300 rounded-xl overflow-hidden h-80 shadow-md">
                 <div className="flex items-center justify-between p-8 h-full">
                   <div className="flex-1 text-blue-900">
                     <h2 className="text-3xl font-bold mb-2 text-blue-900">
@@ -172,9 +172,7 @@ const HeroSection = () => {
                     {/* Suitcase with window */}
                     <div className="relative">
                       <div className="w-48 h-32 bg-yellow-400 rounded-lg border-4 border-yellow-500 relative">
-                        {/* Suitcase handle */}
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-3 bg-yellow-500 rounded-full"></div>
-                        {/* Window with Eiffel Tower */}
                         <div className="absolute top-4 right-4 w-16 h-16 bg-blue-200 rounded-full border-2 border-white flex items-center justify-center">
                           <div className="text-xs text-blue-800">🗼</div>
                         </div>
@@ -182,21 +180,13 @@ const HeroSection = () => {
                     </div>
                   </div>
                 </div>
-                
                 {/* Navigation Arrows */}
-                <button 
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
-                >
+                <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <button 
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
-                >
+                <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all">
                   <ChevronRight className="w-5 h-5" />
                 </button>
-                
                 {/* Dots */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
                   <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -206,77 +196,68 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* 4 Small Promotional Posters (15% each - 1.5 columns each) */}
-            <div className="lg:col-span-1.5 space-y-4">
-              <div className="bg-blue-500 rounded-xl overflow-hidden h-24 relative">
-                <div className="flex items-center justify-between p-4 h-full">
-                  <div className="flex-1 text-white">
-                    <div className="text-xs font-medium opacity-90 mb-1">B2B</div>
-                    <h3 className="text-sm font-bold">Quick Quotes</h3>
-                  </div>
-                  <div className="hidden sm:block">
-                    <img 
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face"
-                      alt="B2B"
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
-                    <ChevronRight className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-blue-600 rounded-xl overflow-hidden h-24 relative">
-                <div className="flex items-center justify-between p-4 h-full">
-                  <div className="flex-1 text-white">
-                    <div className="text-xs font-medium opacity-90 mb-1">REPAIRS & SERVICES</div>
-                    <h3 className="text-sm font-bold">Get Nearest Vendor</h3>
-                  </div>
-                  <div className="hidden sm:block">
-                    <img 
-                      src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=64&h=64&fit=crop&crop=face"
-                      alt="Repairs"
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
+            {/* Right: four tall cards (each ~15%) */}
+            <div className="lg:col-span-6">
+              <div className="grid grid-cols-4 gap-6 h-80">
+                {/* B2B */}
+                <div className="bg-blue-500 rounded-xl h-full overflow-hidden relative shadow-md">
+                  <div className="flex flex-col justify-between h-full p-4 text-white">
+                    <div>
+                      <div className="text-xs font-semibold opacity-90 mb-1">B2B</div>
+                      <h3 className="text-base font-bold">Quick Quotes</h3>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div />
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" alt="B2B" className="w-16 h-16 rounded-lg object-cover" />
+                    </div>
                   </div>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
                     <ChevronRight className="w-5 h-5" />
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-purple-600 rounded-xl overflow-hidden h-24 relative">
-                <div className="flex items-center justify-between p-4 h-full">
-                  <div className="flex-1 text-white">
-                    <div className="text-xs font-medium opacity-90 mb-1">REAL ESTATE</div>
-                    <h3 className="text-sm font-bold">Finest Agents</h3>
-                  </div>
-                  <div className="hidden sm:block">
-                    <img 
-                      src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=64&h=64&fit=crop"
-                      alt="Real Estate"
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
+                {/* Repairs & Services */}
+                <div className="bg-blue-600 rounded-xl h-full overflow-hidden relative shadow-md">
+                  <div className="flex flex-col justify-between h-full p-4 text-white">
+                    <div>
+                      <div className="text-xs font-semibold opacity-90 mb-1">REPAIRS & SERVICES</div>
+                      <h3 className="text-base font-bold">Get Nearest Vendor</h3>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div />
+                      <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=80&h=80&fit=crop&crop=face" alt="Repairs" className="w-16 h-16 rounded-lg object-cover" />
+                    </div>
                   </div>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
                     <ChevronRight className="w-5 h-5" />
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-green-600 rounded-xl overflow-hidden h-24 relative">
-                <div className="flex items-center justify-between p-4 h-full">
-                  <div className="flex-1 text-white">
-                    <div className="text-xs font-medium opacity-90 mb-1">DOCTORS</div>
-                    <h3 className="text-sm font-bold">Book Now</h3>
+                {/* Real Estate */}
+                <div className="bg-purple-600 rounded-xl h-full overflow-hidden relative shadow-md">
+                  <div className="flex flex-col justify-between h-full p-4 text-white">
+                    <div>
+                      <div className="text-xs font-semibold opacity-90 mb-1">REAL ESTATE</div>
+                      <h3 className="text-base font-bold">Finest Agents</h3>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div />
+                      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=80&h=80&fit=crop" alt="Real Estate" className="w-16 h-16 rounded-lg object-cover" />
+                    </div>
                   </div>
-                  <div className="hidden sm:block">
-                    <img 
-                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=64&h=64&fit=crop&crop=face"
-                      alt="Doctors"
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </div>
+                {/* Doctors */}
+                <div className="bg-green-600 rounded-xl h-full overflow-hidden relative shadow-md">
+                  <div className="flex flex-col justify-between h-full p-4 text-white">
+            <div>
+                      <div className="text-xs font-semibold opacity-90 mb-1">DOCTORS</div>
+                      <h3 className="text-base font-bold">Book Now</h3>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div />
+                      <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face" alt="Doctors" className="w-16 h-16 rounded-lg object-cover" />
+                    </div>
                   </div>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
                     <ChevronRight className="w-5 h-5" />
@@ -284,21 +265,15 @@ const HeroSection = () => {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* 4th Vertical Strip (15% width) */}
-            <div className="lg:col-span-1.5 flex flex-col space-y-4">
-              {/* Advertise Strip */}
-              <div className="bg-orange-500 rounded-lg h-24 flex items-center justify-center">
-                <div className="text-white font-bold text-sm transform -rotate-90">
-                  Advertise
-                </div>
-              </div>
-              {/* Free Listing Strip */}
-              <div className="bg-blue-600 rounded-lg h-24 flex items-center justify-center">
-                <div className="text-white font-bold text-sm transform -rotate-90">
-                  Free Listing
-                </div>
-              </div>
+          {/* Floating vertical bars on the far right */}
+          <div className="hidden lg:flex flex-col gap-3 absolute -right-2 top-1/2 -translate-y-1/2">
+            <div className="bg-orange-500 text-white font-semibold rounded-lg px-3 py-2 rotate-90 origin-center shadow">
+              Advertise
+            </div>
+            <div className="bg-blue-600 text-white font-semibold rounded-lg px-3 py-2 rotate-90 origin-center shadow">
+              Free Listing
             </div>
           </div>
         </div>
