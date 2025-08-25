@@ -144,7 +144,7 @@ const HeroSection = () => {
 
       {/* Promotional Banner/Carousel - JD exact: 1 big + 4 tall cards */}
       <div className="container mx-auto px-4 py-6">
-        <div className="relative pr-12 lg:pr-16">
+        <div className="relative pr-16 lg:pr-24">
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-stretch">
             {/* Big Carousel Image (40%) */}
             <div className="lg:col-span-4">
@@ -272,7 +272,7 @@ const HeroSection = () => {
           </div>
 
           {/* Floating vertical bars on the far right */}
-          <div className="hidden lg:flex flex-col items-center justify-center gap-6 absolute inset-y-0 right-0 z-10">
+          <div className="hidden lg:flex flex-col items-center gap-[12px] absolute right-0 top-1/2 -translate-y-1/2 z-10">
             <div className="pointer-events-auto bg-orange-500 text-white font-semibold rounded-md px-3 py-2 rotate-90 origin-center shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg">
               Advertise
             </div>
