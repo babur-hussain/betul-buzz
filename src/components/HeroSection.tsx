@@ -142,12 +142,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Promotional Banner/Carousel with 1 Big + 3 Small Layout */}
+      {/* Promotional Banner/Carousel with 1 Big + 4 Small Layout */}
       <div className="container mx-auto px-4 py-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Big Carousel Image (Left - 2/3 width) */}
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+            {/* Big Carousel Image (40% width - 4 columns) */}
+            <div className="lg:col-span-4">
               <div className="relative bg-gradient-to-b from-blue-300 via-blue-400 to-blue-300 rounded-xl overflow-hidden h-80">
                 <div className="flex items-center justify-between p-8 h-full">
                   <div className="flex-1 text-blue-900">
@@ -206,8 +206,8 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* 3 Small Promotional Posters (Right - 1/3 width) */}
-            <div className="lg:col-span-1 space-y-4">
+            {/* 4 Small Promotional Posters (15% each - 1.5 columns each) */}
+            <div className="lg:col-span-1.5 space-y-4">
               <div className="bg-blue-500 rounded-xl overflow-hidden h-24 relative">
                 <div className="flex items-center justify-between p-4 h-full">
                   <div className="flex-1 text-white">
@@ -264,10 +264,29 @@ const HeroSection = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-green-600 rounded-xl overflow-hidden h-24 relative">
+                <div className="flex items-center justify-between p-4 h-full">
+                  <div className="flex-1 text-white">
+                    <div className="text-xs font-medium opacity-90 mb-1">DOCTORS</div>
+                    <h3 className="text-sm font-bold">Book Now</h3>
+                  </div>
+                  <div className="hidden sm:block">
+                    <img 
+                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=64&h=64&fit=crop&crop=face"
+                      alt="Doctors"
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Far Right Vertical Strips */}
-            <div className="lg:col-span-1 flex flex-col space-y-4">
+            {/* 4th Vertical Strip (15% width) */}
+            <div className="lg:col-span-1.5 flex flex-col space-y-4">
               {/* Advertise Strip */}
               <div className="bg-orange-500 rounded-lg h-24 flex items-center justify-center">
                 <div className="text-white font-bold text-sm transform -rotate-90">
